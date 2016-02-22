@@ -142,18 +142,3 @@ def dforce():
     t = np.array(t)
 
     return t, x, z, w, wu
-
-def learning_plot(t, z, target, wu):
-    plt.figure(figsize=(10, 5))
-    plt.subplot(2, 1, 1)
-    plt.plot(t, target(t), '-r', lw=2)
-    plt.plot(t, z, '-b')
-    plt.legend(('target', 'output'))
-    plt.ylim([-1.1, 3])
-    plt.xticks([])
-    plt.subplot(2, 1, 2)
-    plt.plot(t, wu, '-k')
-    plt.yscale('log')
-    plt.ylabel('$|\Delta w|$', fontsize=20)
-    plt.xlabel('time', fontweight='bold', fontsize=16)
-    plt.show()
