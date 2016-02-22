@@ -1,2 +1,13 @@
-.ipynb_checkpoints/*
+#Jupyter
+notebooks/.ipynb_checkpoints/
+
+# Python
+*.pyc
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# Other
 *.pdf
