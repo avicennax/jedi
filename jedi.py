@@ -4,42 +4,62 @@
 
 from __future__ import division
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.integrate import odeint,ode
 from numpy import zeros, ones, eye, tanh, dot, outer, sqrt, \
     linspace, cos, pi, hstack, zeros_like, abs, repeat
 from numpy.random import uniform, normal, choice
+from functools import partial
 from collections import namedtuple
 
-def force():
+# For easier index access
+force_tuple_ = namedtuple("forcetuple", ['x','t','z', 'w', 'wu'])
+
+class force_tuple(force_tuple_):
+    """
+    Parameters
+    ----------
+    x:
+    t:
+    z:
+    w:
+    wu:
+    """
+    pass
+
+
+def force(target, model, lr, dt, tmax, tstop, x0, w):
     """
     Abbott's FORCE algorithm.
-    Parameters?: target, f, dt, tmax, tstop, x0, w, P, lr
+
+    Parameters
+    ----------
+        target: function
+            Signal for network to learn.
+        model: function
+            ODE mass model.
+        lr: float
+            RLS learning rate.
+        dt: float
+            Simulation time-step.
+        tmax: float
+            Simulation time threshold.
+        tstop: float
+            Learning time threshold.
+        x0: np.array()
+            Initial model state.
+        w: np.array()
+            Initial weight vector to be fit.
     """
-    target = lambda t0: cos(2 * pi * t0 / 50)  # target pattern
 
-    f3 = lambda t0, x: -x + g * dot(J, tanh_x) + dot(w, tanh_x) * u
-
-    dt = 1       # time step
-    tmax = 800   # simulation length
-    tstop = 300
-
-    N = 300
-    J = normal(0, sqrt(1 / N), (N, N))
-    x0 = uniform(-0.5, 0.5, N)
-    t = linspace(0, 50, 500)
-
-    g = 1.5
-    u = uniform(-1, 1, N)
-    w = uniform(-1 / sqrt(N), 1 / sqrt(N), N)  # initial weights
-    P = eye(N)  # Running estimate of the inverse correlation matrix
-    lr = 1.0  # learning rate
-
-    # simulation data: state, output, time, weight updates
+    # Simulation data: state, output, time, weight updates
     x, z, t, wu = [x0], [], [0], [0]
 
+    # Running estimate of the inverse correlation matrix
+    P = eye(len(x0))
+
     # Set up ode solver
-    solver = ode(f3)
+
+    solver = ode(model)
     solver.set_initial_value(x0)
 
     # Integrate ode, update weights, repeat
@@ -58,6 +78,7 @@ def force():
 
         wu.append(np.sum(np.abs(c * error * q)))
 
+        solver.set_f_params(tanh_x)
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
@@ -68,7 +89,7 @@ def force():
     x = np.array(x)
     t = np.array(t)
 
-    return t, x, z, w, wu
+    return force_tuple(x, t, z, w, wu)
 
 def decode(x, rho):
     xd = zeros_like(x)
@@ -141,4 +162,4 @@ def dforce():
     x = np.array(x)
     t = np.array(t)
 
-    return t, x, z, w, wu
+    return force_tuple(x, t, z, w, wu)
