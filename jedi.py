@@ -4,27 +4,8 @@
 
 from __future__ import division
 import numpy as np
-from scipy.integrate import odeint,ode
-from numpy import zeros, ones, eye, tanh, dot, outer, sqrt, \
-    linspace, cos, pi, hstack, zeros_like, abs, repeat
-from numpy.random import uniform, normal, choice
-from functools import partial
-from collections import namedtuple
-
-# For easier index access
-force_tuple_ = namedtuple("forcetuple", ['x','t','z', 'w', 'wu'])
-
-class force_tuple(force_tuple_):
-    """
-    Parameters
-    ----------
-    x:
-    t:
-    z:
-    w:
-    wu:
-    """
-    pass
+from scipy.integrate import ode
+from numpy import eye, tanh, dot, outer, zeros_like
 
 
 def force(target, model, lr, dt, tmax, tstop, x0, w):
@@ -45,10 +26,24 @@ def force(target, model, lr, dt, tmax, tstop, x0, w):
             Simulation time threshold.
         tstop: float
             Learning time threshold.
-        x0: np.array()
+        x0: ndarray
             Initial model state.
-        w: np.array()
+        w: ndarray
             Initial weight vector to be fit.
+
+    Returns
+    -------
+        x: ndarray
+            States across duration of simulation.
+        t: ndarray
+            Times corresponding to readouts of 'x' 'w' and 'z'.
+        z: ndarray
+            Model readout across duration of simulation.
+        w: ndarray
+            Learned model weights across duration of simulation.
+        wu: ndarray
+            Weight changes across duration of simulations
+            (as induced by RLS).
     """
 
     # Simulation data: state, output, time, weight updates
@@ -58,11 +53,10 @@ def force(target, model, lr, dt, tmax, tstop, x0, w):
     P = eye(len(x0))
 
     # Set up ode solver
-
     solver = ode(model)
     solver.set_initial_value(x0)
 
-    # Integrate ode, update weights, repeat
+    # Integrate ODE, update weights, repeat
     while t[-1] < tmax:
         tanh_x = tanh(x[-1])  # cache
         z.append(dot(w, tanh_x))
@@ -78,7 +72,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w):
 
         wu.append(np.sum(np.abs(c * error * q)))
 
-        solver.set_f_params(tanh_x)
+        solver.set_f_params(tanh_x, w)
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
@@ -89,7 +83,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w):
     x = np.array(x)
     t = np.array(t)
 
-    return force_tuple(x, t, z, w, wu)
+    return x, t, z, w, wu
 
 def decode(x, rho):
     xd = zeros_like(x)
@@ -99,40 +93,59 @@ def decode(x, rho):
 
     return xd
 
-def dforce():
+def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w):
     """
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with binary thresholding.
 
     Parameters?: target, f, dt, tmax, tstop, x0, w, P, lr
+
+    Parameters
+    ----------
+        rho: float
+            Binary threshold for decode.
+        target: function
+            Signal for network to learn.
+        model: function
+            ODE mass model.
+        lr: float
+            RLS learning rate.
+        dt: float
+            Simulation time-step.
+        tmax: float
+            Simulation time threshold.
+        tstop: float
+            Learning time threshold.
+        x0: ndarray
+            Initial model state.
+        w: ndarray
+            Initial weight vector to be fit.
+
+    Returns
+    -------
+        x: ndarray
+            States across duration of simulation.
+        t: ndarray
+            Times corresponding to readouts of 'x' 'w' and 'z'.
+        z: ndarray
+            Model readout across duration of simulation.
+        w: ndarray
+            Learned model weights across duration of simulation.
+        wu: ndarray
+            Weight changes across duration of simulations
+            (as induced by RLS).
     """
-    target = lambda t0: cos(2 * pi * t0 / 50)  # target pattern
 
-    f3 = lambda t0, x: -x + g * dot(J, tanh_x) + dot(w, tanh_x) * u
-
-    dt = 1       # time step
-    tmax = 800   # simulation length
-    tstop = 500
-
-    N = 300
-    J = normal(0, sqrt(1 / N), (N, N))
-    x0 = uniform(-0.5, 0.5, N)
-
-    g = 1.5
-    u = uniform(-1, 1, N)
-    w = uniform(-1 / sqrt(N), 1 / sqrt(N), N)  # initial weights
-    P = eye(N)  # Running estimate of the inverse correlation matrix
-    lr = .4  # learning rate
-
-    rho = repeat(0.05, N)
-
-    # simulation data: state,
-    # output, time, weight updates
+    # Simulation data: state, output, time, weight updates
     x, z, t, wu = [x0], [], [0], [0]
 
+    # Running estimate of the inverse correlation matrix
+    P = eye(len(x0))
+
     # Set up ode solver
-    solver = ode(f3)
+    solver = ode(model)
     solver.set_initial_value(x0)
+
 
     # Integrate ode, update weights, repeat
     while t[-1] < tmax:
@@ -151,6 +164,7 @@ def dforce():
 
         wu.append(np.sum(np.abs(c * error * q)))
 
+        solver.set_f_params(tanh_x, w)
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
@@ -158,8 +172,7 @@ def dforce():
     # last update for readout neuron
     z.append(dot(w, tanh_x))
 
-    # plot
     x = np.array(x)
     t = np.array(t)
 
-    return force_tuple(x, t, z, w, wu)
+    return x, t, z, w, wu
