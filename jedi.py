@@ -98,8 +98,6 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w):
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with binary thresholding.
 
-    Parameters?: target, f, dt, tmax, tstop, x0, w, P, lr
-
     Parameters
     ----------
         rho: float
