@@ -57,6 +57,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
         wu: ndarray
             Weight changes across duration of simulations
             (as induced by RLS).
+        solver: scipy.integrate.ode
+            ODE solver used in FORCE
     """
 
     # Running estimate of the inverse correlation matrix
@@ -71,12 +73,21 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
         x, z, t, wu = [x0], [], [0], [0]
     else:
         if solver_params is None:
+            solver = ode(model)
+            solver.set_initial_value(x0)
+
+            # Simulation data: state, output, time, weight updates
             x, z, t, wu = [x0], [], [0], [0]
         else:
             solver = ode_solver
-            t = solver_params['t']
-            x = solver_params['x'][-1]
+            if 't' not in solver_params:
+                t = [0]
+                solver.t = 0
+            else:
+                t = solver_params['t']
+            x = [solver_params['x'][-1]]
             wu, z = [], [0]
+
 
     if inputs is None:
         inputs = zeros(tmax).tolist()
@@ -85,7 +96,6 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
         target_func = True
     else:
         target_func = False
-
 
     prev_tmax = t[-1]
     index = 0
@@ -125,7 +135,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
     x = np.array(x)
     t = np.array(t)
 
-    return x, t, z, w, wu
+    return x, t, z, w, wu, solver
 
 def decode(x, rho):
     xd = zeros_like(x)
@@ -187,6 +197,8 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
         wu: ndarray
             Weight changes across duration of simulations
             (as induced by RLS).
+        solver: scipy.integrate.ode
+            ODE solver used in DFORCE
     """
 
     # Running estimate of the inverse correlation matrix
@@ -200,10 +212,20 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
         # Simulation data: state, output, time, weight updates
         x, z, t, wu = [x0], [], [0], [0]
     else:
-        solver = ode_solver
-        t = solver_params['t']
-        x = solver_params['x'][-1]
-        wu, z = [], [0]
+        if solver_params is None:
+            solver = ode(model)
+            solver.set_initial_value(x0)
+
+            # Simulation data: state, output, time, weight updates
+            x, z, t, wu = [x0], [], [0], [0]
+        else:
+            solver = ode_solver
+            if 't' not in solver_params:
+                t = [0]
+            else:
+                t = solver_params['t']
+            x = [solver_params['x'][-1]]
+            wu, z = [], [0]
 
     if inputs is None:
         inputs = zeros(tmax).tolist()
@@ -253,6 +275,6 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
     x = np.array(x)
     t = np.array(t)
 
-    return x, t, z, w, wu
+    return x, t, z, w, wu, solver
 
 
