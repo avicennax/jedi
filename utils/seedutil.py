@@ -9,6 +9,7 @@ import csv
 
 from numpy import sqrt
 import numpy as np
+import scipy.stats as stats
 
 def save_seeds(seeds, description='', filename=None, dir='../data', seed_key=None):
     t = datetime.datetime.now()
@@ -59,22 +60,37 @@ def load_seeds(filename, dir='../data'):
     return np.load(path)
 
 
-def set_simulation_parameters(seed, N, i):
+def set_simulation_parameters(seed, N, i, p=None):
     """
     Common simulation parameters for FORCE/DFORCE
 
-    seed: float
-    N: int
-    i: int
+    seed : float
+        PRNG seed
+    N : int
+        Size of primary stochastic matrix
+    i : int
+        Size of secondary stochastic matrix
+    p : ndarray
+        Sparsity mask parameters.
+        Each p must be between [0,1].
     """
     prng = np.random.RandomState(seed)
 
     J = prng.normal(0, sqrt(1 / N), (N, N)) # primary stochastic matrix
     Wi = prng.normal(0, sqrt(1 / i), (i, i)) # secondary stochastic matrix
     wi = prng.normal(0, sqrt(1 / i), (i, i)) # ternary stochastic matrix
+
+    if p is not None:
+        if len(p) != 3:
+            raise ValueError("p parameter should be array-like of length 3, containing floats.")
+        J *= stats.bernoulli.rvs(p[0], 0, N*N).reshape(N,N)
+        Wi *= stats.bernoulli.rvs(p[1], 0, i*i).reshape(i,i)
+        wi *= stats.bernoulli.rvs(p[2], 0, i*i).reshape(i,i)
+
+
     x0 = prng.uniform(-0.5, 0.5, N) # initial state (x0)
 
     u = prng.uniform(-1, 1, N) #
     w = prng.uniform(-1 / sqrt(N), 1 / sqrt(N), N)  # Initial weights
 
-    return J, Wi, wi, x0, u, w
+    return J, Wi, wi, x0, u, w,
