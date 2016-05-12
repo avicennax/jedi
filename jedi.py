@@ -6,7 +6,7 @@ from __future__ import division
 import types
 import numpy as np
 from scipy.integrate import ode
-from numpy import eye, tanh, dot, outer, zeros_like, zeros
+from numpy import eye, tanh, dot, outer, zeros_like, zeros, ceil
 
 def step_decode(x, rho):
     xd = zeros_like(x)
@@ -100,7 +100,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
 
 
     if inputs is None:
-        inputs = zeros(tmax).tolist()
+        inputs = zeros(ceil(tmax/dt)+1).tolist()
 
     if isinstance(target, types.FunctionType):
         target_func = True
@@ -131,7 +131,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
 
         wu.append(np.sum(np.abs(c * error * q)))
 
-        solver.set_f_params(tanh_x, w, inputs[index], z[-1])
+        solver.set_f_params(tanh_x, inputs[index], z[-1])
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
@@ -364,7 +364,7 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
             wu, z = [], [0]
 
     if inputs is None:
-        inputs = zeros(tmax).tolist()
+        inputs = zeros(ceil(tmax/dt)+1).tolist()
 
     if isinstance(target, types.FunctionType):
         target_func = True
@@ -397,7 +397,7 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
 
         wu.append(np.sum(np.abs(c * error * q)))
 
-        solver.set_f_params(tanh_x, w, inputs[index], z[-1])
+        solver.set_f_params(tanh_x, inputs[index], z[-1])
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
