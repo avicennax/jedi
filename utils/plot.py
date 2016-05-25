@@ -74,3 +74,57 @@ def target_vs_output_plus_error(t, z, wu, target, offset=0, log=True):
         plt.yscale('log')
     plt.ylabel('$|\Delta w|$', fontsize=20)
     plt.xlabel('time', fontweight='bold', fontsize=16)
+
+def visualize_3dim_state(time, tv, pca_x):
+    """
+    3-dim PCA state visualization for IPython widget; called via interact.
+    NOTE: interact widget only works inside Juypter notebook.
+
+    Usage:
+    > rom ipywidgets import interact, fixed
+    > ...
+    > tmax = t[-1]
+    > tmin = t[0]
+    > tv = t
+    > interact(visualize_3dim_state, time=(tmin, tmax, .1), pca_x=fixed(pca_x), tv=fixed(tv));
+
+    Parameters
+    ----------
+    time: ndarray
+    tv: float
+    pca_x: ndarray
+    """
+    ti = np.argmax(tv >= time)
+    ax = plt.figure(figsize=(10,10)).add_subplot(111, projection='3d')
+    ax.scatter(pca_x[0][ti], pca_x[1][ti], pca_x[2][ti], c='red');
+    plt.plot(pca_x[0][:ti], pca_x[1][:ti], pca_x[2][:ti]);
+    ax.set_xlabel('PCA 1')
+    ax.set_ylabel('PCA 2')
+    ax.set_zlabel('PCA 3')
+
+
+def visualize_2dim_state(time, tv, pca_x):
+    """
+    2-dim PCA state visualization for IPython widget; called via interact.
+    NOTE: interact widget only works inside Juypter notebook.
+
+    Usage:
+    > from ipywidgets import interact, fixed
+    > ...
+    > tmax = t[-1]
+    > tmin = t[0]
+    > tv = t[:500]
+    > interact(visualize_2dim_state, time=(tmin, tmax, .1), pca_x=fixed(pca_x), tv=fixed(tv));
+
+    Parameters
+    ----------
+    time: ndarray
+    tv: float
+    pca_x: ndarray
+    """
+    ti = np.argmax(tv >= time)
+    plt.figure(figsize=(6,6))
+    plt.plot(pca_x[0][:ti], pca_x[1][:ti])
+    plt.plot(pca_x[0][ti], pca_x[1][ti], 'ro')
+    plt.ylabel("PCA 2")
+    plt.xlabel("PCA 1")

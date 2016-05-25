@@ -4,6 +4,7 @@
 
 from __future__ import division
 import types
+import time
 import numpy as np
 from scipy.integrate import ode
 from numpy import eye, tanh, dot, outer, zeros_like, zeros, ceil
@@ -110,6 +111,9 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
     prev_tmax = t[-1]
     index = 0
 
+    # Timing simulation
+    start_time = time.clock()
+
     # Integrate ODE, update weights, repeat
     while t[-1] < tmax + prev_tmax:
         tanh_x = tanh(x[-1])  # cache
@@ -138,6 +142,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
 
         # Allows for next input/target to be processed.
         index += 1
+
+    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
     z.append(dot(w, tanh_x))
@@ -241,6 +247,9 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
     prev_tmax = t[-1]
     index = 0
 
+    # Timing simulation
+    start_time = time.clock()
+
     # Integrate ODE, update weights, repeat
     while t[-1] < tmax + prev_tmax:
         tanh_x = tanh(x[-1])
@@ -270,6 +279,8 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
 
         # Allows for next input to be processed.
         index += 1
+
+    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
     z.append(dot(w, tanh_xd))
@@ -375,10 +386,20 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
     prev_tmax = t[-1]
     index = 0
 
+    # Timing simulation
+    start_time = time.clock()
+
     # Integrate ODE, update weights, repeat
+
     while t[-1] < tmax + prev_tmax:
         tanh_x = tanh(x[-1])
-        tanh_xd = soft_decode(tanh_x, rho)
+
+        #
+        # tanh_xd = soft_decode(tanh_x, rho)
+
+        # inline implementation
+        tanh_xd = 2*(1./(1.+np.exp(-rho*(tanh_x))))-1
+
         z.append(dot(w, tanh_xd))
 
         if target_func:
@@ -405,6 +426,8 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
         # Allows for next input to be processed.
         index += 1
 
+    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
+
     # last update for readout neuron
     z.append(dot(w, tanh_xd))
 
@@ -412,4 +435,3 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
     t = np.array(t)
 
     return x, t, z, w, wu, solver
-
