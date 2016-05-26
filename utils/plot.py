@@ -116,7 +116,7 @@ def visualize_2dim_state(time, tv, pca_x):
     > tv = t[:500]
     > interact(visualize_2dim_state, time=(tmin, tmax, .1), pca_x=fixed(pca_x), tv=fixed(tv));
 
-    Parameters
+    Parametersw
     ----------
     time: ndarray
     tv: float
