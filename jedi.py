@@ -394,7 +394,7 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
     while t[-1] < tmax + prev_tmax:
         tanh_x = tanh(x[-1])
 
-        #
+        # function call implementation
         # tanh_xd = soft_decode(tanh_x, rho)
 
         # inline implementation

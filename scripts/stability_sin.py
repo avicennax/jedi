@@ -12,11 +12,13 @@ from numpy import zeros,ones,eye,tanh,dot,outer,sqrt,linspace, \
 from numpy.random import uniform,normal,choice
 
 def main():
+    # Loading seeds
     seeds = seedutil.load_seeds('main_seeds.npy', dir='../data/stability')
 
+    # Sin wave target function
     target = lambda t0: cos(2 * pi * t0 / 10)
+    # Simulation parameters for FORCE
 
-     #Simulation parameters for FORCE
     dt = .1      # time step
     tmax = 100   # simulation length
     tstop = 50 # learning stop time
