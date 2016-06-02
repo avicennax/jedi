@@ -1,6 +1,6 @@
 from __future__ import division
-from jedi import jedi
-from jedi.utils import plot, seedutil
+import jedi
+from utils import plot, seedutil
 
 import random
 import types
@@ -19,7 +19,7 @@ seeds = uniform(0,10000,1).astype(int)
 target = lambda t0: cos(2 * pi * t0 / 10)
 
 #Simulation parameters for FORCE
-dt = .1      # time step
+dt = .01      # time step
 tmax = 100   # simulation length
 tstop = 50  # learning stop time
 g = 1.5    # gain factor?
