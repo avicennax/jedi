@@ -21,7 +21,7 @@ def main():
     target = lambda t0: cos(2 * pi * t0 / 10)
 
     #Simulation parameters for FORCE
-    dt = .1      # time step
+    dt = .01      # time step
     tmax = 100   # simulation length
     tstop = 50 # learning stop time
     g = 1.5    # gain factor?
@@ -54,31 +54,31 @@ if __name__ ==  "__main__":
         # script meat
         main()
 
-        wall_time = wall_start - time.time()
-        clock_time = clock_start - time.clock()
+        wall_time = time.time() - wall_start
+        clock_time = time.clock() - clock_start
     except Exception as err:
-        wall_time = wall_start - time.time()
-        clock_time = clock_start - time.clock()
+        wall_time = time.time() - wall_start
+        clock_time = time.clock() - clock_start
 
         err_str = ''.join(['ERROR: ', str(sys.exc_info()[0])])
         wall_time_str = ''.join(['Wall-time: ', str(wall_time)])
         clock_time_str = ''.join(['Clock-time: ', str(clock_time)])
         msg = "\n".join([err_str, wall_time_str, clock_time_str])
     else:
-        str = 'Script executed; no errors.'
+        top = 'Script executed; no errors.'
         wall_time_str = ''.join(['Wall-time: ', str(wall_time)])
         clock_time_str = ''.join(['Clock-time: ', str(clock_time)])
-        msg = "\n".join([str, wall_time_str, clock_time_str])
+        msg = "\n".join([top, wall_time_str, clock_time_str])
 
     decryptor = sys.argv[1]
 
     if len(sys.argv) > 2:
         pw_filename = sys.argv[2]
     else:
-        pw_filename = 'mail_pw.simon'
+        pw_filename = '../data/random/gmail_pw.simon'
 
-    #pw = mailinator.get_password(decryptor)
+    pw = mailinator.get_password(decryptor, pw_filename)
     msg = mailinator.add_header(sys.argv[0], msg)
-    mailinator.gmail(msg, "sjh808ss$$")
+    mailinator.gmail(msg, pw)
 
 
