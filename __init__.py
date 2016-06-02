@@ -1,1 +1,1 @@
-__all__ = ['jedi']
+__all__ = ['jedi', 'utils']

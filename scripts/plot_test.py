@@ -23,7 +23,7 @@ dt = .01      # time step
 tmax = 100   # simulation length
 tstop = 50  # learning stop time
 g = 1.5    # gain factor?
-N = 300      # size of stochastic pool
+N = 500      # size of stochastic pool
 lr = 1   # learning rate
 errors = []
 

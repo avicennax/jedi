@@ -1,2 +1,2 @@
-__all__ = ['plot', "seeds"]
+__all__ = ['plot', "seedutil"]
 

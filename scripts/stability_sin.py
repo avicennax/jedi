@@ -23,7 +23,7 @@ def main():
     tmax = 100   # simulation length
     tstop = 50 # learning stop time
     g = 1.5    # gain factor?
-    N = 300      # size of stochastic pool
+    N = 1000      # size of stochastic pool
     lr = 1   # learning rate
     rho = 100 # SFORCE sharpness factor
 
