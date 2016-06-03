@@ -75,10 +75,11 @@ if __name__ ==  "__main__":
     if len(sys.argv) > 2:
         pw_filename = sys.argv[2]
     else:
-        pw_filename = '../data/random/gmail_pw.simon'
+        pw_filename = '../data/random/ucsd_pw.simon'
 
     pw = mailinator.get_password(decryptor, pw_filename)
-    msg = mailinator.add_header(sys.argv[0], msg)
-    mailinator.gmail(msg, pw)
+    msg = mailinator.format_email(msg, sys.argv[0], 
+	('Simon', 'simon.haxby@gmail.com'), ('Simon', 'shaxby@ucsd.edu'))
+    mailinator.ucsdmail(msg, pw)
 
 
