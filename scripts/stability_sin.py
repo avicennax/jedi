@@ -35,7 +35,7 @@ def main(argv):
 
     # Script variables
     ucsd_email = False
-    checkpoint = 3
+    checkpoint = 5
 
     param_file = open('../data/stability/sin/parameters.txt', 'w')
     for key in parameters:
