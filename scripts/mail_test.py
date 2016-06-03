@@ -56,7 +56,7 @@ def main(argv):
 
         wall_time = time.time() - wall_start
         clock_time = time.clock() - clock_start
-    except Exception as err:
+    except:
         wall_time = time.time() - wall_start
         clock_time = time.clock() - clock_start
 

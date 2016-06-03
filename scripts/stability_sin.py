@@ -1,17 +1,18 @@
 from __future__ import division
 from jedi import jedi
-from jedi.utils import plot, seedutil
+from jedi.utils import plot, seedutil, mailer
 
 import random
 import types
 import sys
+import time
 import numpy as np
 from scipy.integrate import odeint, ode
 from numpy import zeros,ones,eye,tanh,dot,outer,sqrt,linspace, \
     cos,pi,hstack,zeros_like,abs,repeat
 from numpy.random import uniform,normal,choice
 
-def main():
+def main(argv):
     # Loading seeds
     seeds = seedutil.load_seeds('main_seeds.npy', dir='../data/stability')
 
@@ -32,7 +33,9 @@ def main():
     zs = []
     wus = []
 
-    checkpoint = 2
+    # Script variables
+    ucsd_email = False
+    checkpoint = 3
 
     param_file = open('../data/stability/sin/parameters.txt', 'w')
     for key in parameters:
@@ -40,7 +43,13 @@ def main():
         param_file.write('\n')
     param_file.close()
 
-    for seed_num, seedling in enumerate(seeds[:10]):
+    # Checkpoint timer
+    timer = time.time()
+
+    # Seed subselection
+    seeds = seeds[:10]
+
+    for seed_num, seedling in enumerate(seeds):
         J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
         # inp & z are dummy variables
@@ -65,6 +74,10 @@ def main():
             np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
                             str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
 
+
+            mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+            timer = time.time()
+
             del xs, zs, wus
             xs = []
             zs = []
@@ -82,11 +95,15 @@ def main():
         np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
                             str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
+        mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+
     np.save('../data/stability/sin/t.npy', t)
 
     xs = []
     zs = []
     wus = []
+
+    timer = time.time()
 
     for seed_num, seedling in enumerate(seeds[:10]):
         J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
@@ -113,6 +130,10 @@ def main():
             np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
                             str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
 
+
+            mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+            timer = time.time()
+
             del xs, zs, wus
             xs = []
             zs = []
@@ -130,6 +151,8 @@ def main():
         np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
                             str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
+        mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+
 
 if __name__ ==  "__main__":
-    main()
+    main(sys.argv)
