@@ -61,13 +61,13 @@ if __name__ ==  "__main__":
         clock_time = time.clock() - clock_start
 
         err_str = ''.join(['ERROR: ', str(sys.exc_info()[0])])
-        wall_time_str = ''.join(['Wall-time: ', str(wall_time)])
-        clock_time_str = ''.join(['Clock-time: ', str(clock_time)])
+        wall_time_str = ''.join(['Wall-time: ', '{:.3f}'.format(wall_time)])
+        clock_time_str = ''.join(['Clock-time: ', '{:.3f}'.format(clock_time)])
         msg = "\n".join([err_str, wall_time_str, clock_time_str])
     else:
         top = 'Script executed; no errors.'
-        wall_time_str = ''.join(['Wall-time: ', str(wall_time)])
-        clock_time_str = ''.join(['Clock-time: ', str(clock_time)])
+        wall_time_str = ''.join(['Wall-time: ', '{:.3f}'.format(wall_time)])
+        clock_time_str = ''.join(['Clock-time: ', '{:.3f}'.format(clock_time)])
         msg = "\n".join([top, wall_time_str, clock_time_str])
 
     decryptor = sys.argv[1]
