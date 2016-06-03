@@ -17,21 +17,30 @@ def main():
 
     # Sin wave target function
     target = lambda t0: cos(2 * pi * t0 / 10)
-    # Simulation parameters for FORCE
 
-    dt = .1      # time step
-    tmax = 100   # simulation length
-    tstop = 50 # learning stop time
-    g = 1.5    # gain factor?
-    N = 1000      # size of stochastic pool
-    lr = 1   # learning rate
-    rho = 100 # SFORCE sharpness factor
+    # Simulation parameters for FORCE
+    parameters = {}
+    parameters['dt'] = dt =.1      # time step
+    parameters['tmax'] = tmax = 100   # simulation length
+    parameters['tstop'] = tstop = 50 # learning stop time
+    parameters['g'] = g = 1.5    # gain factor?
+    parameters['N'] = N = 300      # size of stochastic pool
+    parameters['lr'] = lr = 1   # learning rate
+    parameters['rho'] = rho = 100 # SFORCE sharpness factor
 
     xs = []
     zs = []
     wus = []
 
-    for seedling in seeds:
+    checkpoint = 2
+
+    param_file = open('../data/stability/sin/parameters.txt', 'w')
+    for key in parameters:
+        param_file.write(": ".join([key, str(parameters[key])]))
+        param_file.write('\n')
+    param_file.close()
+
+    for seed_num, seedling in enumerate(seeds[:10]):
         J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
         # inp & z are dummy variables
@@ -44,18 +53,45 @@ def main():
         zs.append(z)
         wus.append(wu)
 
-    np.save(xs, '../data/stability/sin/x/xs_FORCE_1000.npy')
-    np.save(zs, '../data/stability/sin/z/zs_FORCE_1000.npy')
-    np.save(wus, '../data/stability/sin/x/wus_FORCE_1000.npy')
-    np.save(t, '../data/stability/sin/t_1000.npy')
+        if seed_num % checkpoint == 0 and seed_num != 0:
+            xs = np.array(xs)
+            zs = np.array(zs)
+            wus = np.array(wus)
+
+            np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+            np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+            np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
+
+            del xs, zs, wus
+            xs = []
+            zs = []
+            wus = []
+
+    if xs is not []:
+        xs = np.array(xs)
+        zs = np.array(zs)
+        wus = np.array(wus)
+
+        np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
+        np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
+        np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
+
+    np.save('../data/stability/sin/t.npy', t)
 
     xs = []
     zs = []
     wus = []
 
-    for seed in seeds:
-        J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seed, N, 1, (.1,1,1))
+    for seed_num, seedling in enumerate(seeds[:10]):
+        J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
+        # inp & z are dummy variables
         def model(t0, x, tanh_x, inp, z):
             return -x + g * dot(J, tanh_x) + Wz*z
 
@@ -65,9 +101,34 @@ def main():
         zs.append(z)
         wus.append(wu)
 
-    np.save(xs, '../data/stability/sin/x/xs_SFORCE_1000.npy')
-    np.save(zs, '../data/stability/sin/z/zs_SFORCE_1000.npy')
-    np.save(wus, '../data/stability/sin/x/wus_SFORCE_1000.npy')
+        if seed_num % checkpoint == 0 and seed_num != 0:
+            xs = np.array(xs)
+            zs = np.array(zs)
+            wus = np.array(wus)
+
+            np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+            np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+            np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
+                            str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
+
+            del xs, zs, wus
+            xs = []
+            zs = []
+            wus = []
+
+    if xs is not []:
+        xs = np.array(xs)
+        zs = np.array(zs)
+        wus = np.array(wus)
+
+        np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
+        np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
+        np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
+                            str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
 
 if __name__ ==  "__main__":

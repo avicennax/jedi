@@ -13,7 +13,7 @@ from numpy import zeros,ones,eye,tanh,dot,outer,sqrt,linspace, \
     cos,pi,hstack,zeros_like,abs,repeat
 from numpy.random import uniform,normal,choice
 
-def main():
+def simulations():
     # Setting Seeds
     seeds = uniform(0,10000,1).astype(int)
 
@@ -44,15 +44,15 @@ def main():
 
     errors = np.array(errors)
 
-if __name__ ==  "__main__":
-    if len(sys.argv) < 2:
+
+def main(argv):
+    if len(argv) < 2:
         raise ValueError("Pass 'decryptor' password as script arg for smtp code: see Voytek whiteboard")
     try:
         wall_start = time.time()
         clock_start = time.clock()
 
-        # script meat
-        main()
+        simulations()
 
         wall_time = time.time() - wall_start
         clock_time = time.clock() - clock_start
@@ -70,16 +70,19 @@ if __name__ ==  "__main__":
         clock_time_str = ''.join(['Clock-time: ', '{:.3f}'.format(clock_time)])
         msg = "\n".join([top, wall_time_str, clock_time_str])
 
-    decryptor = sys.argv[1]
+    decryptor = argv[1]
 
-    if len(sys.argv) > 2:
-        pw_filename = sys.argv[2]
+    if len(argv) > 2:
+        pw_filename = argv[2]
     else:
-        pw_filename = '../data/random/ucsd_pw.simon'
+        pw_filename = '../data/random/gmail_pw.simon'
 
     pw = mailinator.get_password(decryptor, pw_filename)
-    msg = mailinator.format_email(msg, sys.argv[0], 
+    msg = mailinator.format_email(msg, argv[0],
 	('Simon', 'simon.haxby@gmail.com'), ('Simon', 'shaxby@ucsd.edu'))
-    mailinator.ucsdmail(msg, pw)
+    mailinator.gmail(msg, pw)
+
+if __name__ ==  "__main__":
+    main(sys.argv)
 
 
