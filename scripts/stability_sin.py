@@ -1,3 +1,6 @@
+# CHECK script parameters to ensure
+# everything is koscher
+
 from __future__ import division
 from jedi import jedi
 from jedi.utils import plot, seedutil, mailer
@@ -34,124 +37,132 @@ def main(argv):
     wus = []
 
     # Script variables
-    ucsd_email = False
-    checkpoint = 5
+    ucsd_email = True
+    checkpoint = 100
+    run_dforce = True
+    run_force = True
+    write_params = True
 
-    param_file = open('../data/stability/sin/parameters.txt', 'w')
-    for key in parameters:
-        param_file.write(": ".join([key, str(parameters[key])]))
-        param_file.write('\n')
-    param_file.close()
-
-    # Checkpoint timer
-    timer = time.time()
+    if write_params:
+        param_file = open('../data/stability/sin/parameters.txt', 'w')
+        for key in parameters:
+            param_file.write(": ".join([key, str(parameters[key])]))
+            param_file.write('\n')
+        param_file.close()
 
     # Seed subselection
-    seeds = seeds[:10]
+    seeds = seeds[:]
 
-    for seed_num, seedling in enumerate(seeds):
-        J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
+    if run_force:
+        # Checkpoint timer
+        timer = time.time()
 
-        # inp & z are dummy variables
-        def model(t0, x, tanh_x, inp, z):
-            return -x + g * dot(J, tanh_x) + Wz*z
+        for seed_num, seedling in enumerate(seeds):
+            J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
-        x,t,z,_,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w)
+            # inp & z are dummy variables
+            def model(t0, x, tanh_x, inp, z):
+                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
 
-        xs.append(x)
-        zs.append(z)
-        wus.append(wu)
+            x,t,z,_,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w)
 
-        if seed_num % checkpoint == 0 and seed_num != 0:
+            xs.append(x)
+            zs.append(z)
+            wus.append(wu)
+
+            if seed_num % checkpoint == 0 and seed_num != 0:
+                xs = np.array(xs)
+                zs = np.array(zs)
+                wus = np.array(wus)
+
+                np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+                np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+                np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
+
+
+                mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+                timer = time.time()
+
+                del xs, zs, wus
+                xs = []
+                zs = []
+                wus = []
+
+        if xs is not []:
             xs = np.array(xs)
             zs = np.array(zs)
             wus = np.array(wus)
 
             np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
             np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
             np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
-
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
             mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
-            timer = time.time()
 
-            del xs, zs, wus
-            xs = []
-            zs = []
-            wus = []
+        np.save('../data/stability/sin/t.npy', t)
 
-    if xs is not []:
-        xs = np.array(xs)
-        zs = np.array(zs)
-        wus = np.array(wus)
+    if run_dforce:
+        xs = []
+        zs = []
+        wus = []
 
-        np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
-        np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
-        np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
+        timer = time.time()
 
-        mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+        for seed_num, seedling in enumerate(seeds):
+            J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
-    np.save('../data/stability/sin/t.npy', t)
+            # inp & z are dummy variables
+            def model(t0, x, tanh_x, inp, z):
+                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
 
-    xs = []
-    zs = []
-    wus = []
+            x,t,z,_,wu,_ = jedi.sforce(rho, target, model, lr, dt, tmax, tstop, x0, w)
 
-    timer = time.time()
+            xs.append(x)
+            zs.append(z)
+            wus.append(wu)
 
-    for seed_num, seedling in enumerate(seeds[:10]):
-        J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
+            print "MC simulation %d complete." % seed_num
 
-        # inp & z are dummy variables
-        def model(t0, x, tanh_x, inp, z):
-            return -x + g * dot(J, tanh_x) + Wz*z
+            if seed_num % checkpoint == 0 and seed_num != 0:
+                xs = np.array(xs)
+                zs = np.array(zs)
+                wus = np.array(wus)
 
-        x,t,z,_,wu,_ = jedi.sforce(rho, target, model, lr, dt, tmax, tstop, x0, w)
+                np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+                np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+                np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
+                                str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
 
-        xs.append(x)
-        zs.append(z)
-        wus.append(wu)
 
-        if seed_num % checkpoint == 0 and seed_num != 0:
+                mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
+                timer = time.time()
+
+                del xs, zs, wus
+                xs = []
+                zs = []
+                wus = []
+
+        if xs is not []:
             xs = np.array(xs)
             zs = np.array(zs)
             wus = np.array(wus)
 
             np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
             np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
             np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
-                            str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
-
+                                str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
             mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
-            timer = time.time()
-
-            del xs, zs, wus
-            xs = []
-            zs = []
-            wus = []
-
-    if xs is not []:
-        xs = np.array(xs)
-        zs = np.array(zs)
-        wus = np.array(wus)
-
-        np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
-        np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
-        np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
-                            str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
-
-        mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
 
 
 if __name__ ==  "__main__":

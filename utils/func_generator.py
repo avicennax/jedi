@@ -1,14 +1,17 @@
 # func_generator.py
 # Random generation of functions of interest
-
+from __future__ import division
 import numpy as np
 
-def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01):
+def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01, pulse_len=None):
     inputs = []
     outputs = []
 
     if n != len(spikes):
         raise ValueError("n must be same as len(spikes).")
+
+    if pulse_len is None:
+        pulse_len = max(((1/100)*t)/dt, 2)
 
     for spike_type in spikes:
         t_len = int(t/dt)
@@ -33,7 +36,7 @@ def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01):
                     last = -1
                 else:
                     if pulse_counter == 0:
-                        pulse_counter = int(10/dt)
+                        pulse_counter = pulse_len
                     pulse = 1
                     out[i] = 1
                     last = 1
@@ -45,7 +48,7 @@ def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01):
                     last = 1
                 else:
                     if pulse_counter == 0:
-                        pulse_counter = int(10/dt)
+                        pulse_counter = pulse_len
                     pulse = -1
                     out[i] = -1
                     last = -1
@@ -64,6 +67,9 @@ def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01):
                     else:
                         inp[i] = -1
                         out[i] = -1
+
+        inp += [inp[-1], inp[-1]]
+        out += [out[-1], out[-1]]
 
         inputs.append(inp)
         outputs.append(out)
