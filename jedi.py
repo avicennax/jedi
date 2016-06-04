@@ -20,7 +20,8 @@ def step_decode(x, rho):
 def soft_decode(x, rho):
     return 2*(1./(1.+np.exp(-rho*(x))))-1
 
-def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=None, solver_params=None):
+def force(target, model, lr, dt, tmax, tstop, x0, w,
+          inputs=None, ode_solver=None, solver_params=None, verbose=True):
     """
     Abbott's FORCE algorithm.
 
@@ -55,6 +56,9 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
             Should contain:
                 'x': ndarray
                 't': ndarray
+        verbose: bool (Optional)
+            Specifies whether to run simulation run time.
+
     Returns
     -------
         x: ndarray
@@ -143,7 +147,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
         # Allows for next input/target to be processed.
         index += 1
 
-    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
+    if verbose:
+        print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
     z.append(dot(w, tanh_x))
@@ -153,7 +158,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=Non
 
     return x, t, z, w, wu, solver
 
-def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=None, solver_params=None):
+def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w,
+           inputs=None, ode_solver=None, solver_params=None, verbose=True):
     """
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with binary thresholding.
@@ -191,6 +197,8 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
             Should contain:
                 'x': ndarray
                 't': ndarray
+        verbose: bool (Optional)
+            Specifies whether to run simulation run time.
 
     Returns
     -------
@@ -280,7 +288,8 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
         # Allows for next input to be processed.
         index += 1
 
-    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
+    if verbose:
+        print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
     z.append(dot(w, tanh_xd))
@@ -290,7 +299,8 @@ def dforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
 
     return x, t, z, w, wu, solver
 
-def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solver=None, solver_params=None):
+def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w,
+           inputs=None, ode_solver=None, solver_params=None, verbose=True):
     """
     Peterson's SFORCE algorithm.
     A.K.A Abbott's FORCE with soft thresholding.
@@ -330,6 +340,8 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
             Should contain:
                 'x': ndarray
                 't': ndarray
+        verbose: bool (Optional)
+            Specifies whether to run simulation run time.
 
     Returns
     -------
@@ -426,7 +438,8 @@ def sforce(rho, target, model, lr, dt, tmax, tstop, x0, w, inputs=None, ode_solv
         # Allows for next input to be processed.
         index += 1
 
-    print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
+    if verbose:
+        print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
     z.append(dot(w, tanh_xd))

@@ -19,8 +19,9 @@ def main(argv):
     # Loading seeds
     seeds = seedutil.load_seeds('main_seeds.npy', dir='../data/stability')
 
-    # Sin wave target function
-    target = lambda t0: cos(2 * pi * t0 / 10)
+    # Inputs and targets
+    targets = np.load("../data/stability/flipflop/targets_tmax10sec.npy")
+    inputs = np.load("../data/stability/flipflop/inputs_tmax10sec.npy")
 
     # Simulation parameters for FORCE
     parameters = {}
@@ -45,7 +46,7 @@ def main(argv):
     write_params = True
 
     if write_params:
-        param_file = open('../data/stability/sin/parameters.txt', 'w')
+        param_file = open('../data/stability/flipflop/parameters.txt', 'w')
         for key in parameters:
             param_file.write(": ".join([key, str(parameters[key])]))
             param_file.write('\n')
@@ -59,13 +60,13 @@ def main(argv):
         timer = time.time()
 
         for seed_num, seedling in enumerate(seeds):
-            J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
+            J, Wz, Wi, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
 
             # inp & z are dummy variables
             def model(t0, x, tanh_x, inp, z):
-                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
+                return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-            x,t,z,_,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w)
+            x,t,z,_,wu,_ = jedi.force(targets, model, lr, dt, tmax, tstop, x0, w)
 
             xs.append(x)
             zs.append(z)
@@ -78,11 +79,11 @@ def main(argv):
                 zs = np.array(zs)
                 wus = np.array(wus)
 
-                np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
+                np.save(''.join(['../data/stability/flipflop/x/FORCE_xs_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
-                np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
+                np.save(''.join(['../data/stability/flipflop/z/FORCE_zs_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
-                np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
+                np.save(''.join(['../data/stability/flipflop/wu/FORCE_wus_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
 
                 if send_email:
@@ -99,17 +100,17 @@ def main(argv):
             zs = np.array(zs)
             wus = np.array(wus)
 
-            np.save(''.join(['../data/stability/sin/x/FORCE_xs_',
+            np.save(''.join(['../data/stability/flipflop/x/FORCE_xs_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
-            np.save(''.join(['../data/stability/sin/z/FORCE_zs_',
+            np.save(''.join(['../data/stability/flipflop/z/FORCE_zs_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
-            np.save(''.join(['../data/stability/sin/wu/FORCE_wus_',
+            np.save(''.join(['../data/stability/flipflop/wu/FORCE_wus_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
             if send_email:
                 mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
 
-        np.save('../data/stability/sin/t.npy', t)
+        np.save('../data/stability/flipflop/t.npy', t)
 
     if run_dforce:
         xs = []
@@ -123,9 +124,9 @@ def main(argv):
 
             # inp & z are dummy variables
             def model(t0, x, tanh_x, inp, z):
-                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
+                return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-            x,t,z,_,wu,_ = jedi.sforce(rho, target, model, lr, dt, tmax, tstop, x0, w)
+            x,t,z,_,wu,_ = jedi.sforce(rho, targets, model, lr, dt, tmax, tstop, x0, w)
 
             xs.append(x)
             zs.append(z)
@@ -138,11 +139,11 @@ def main(argv):
                 zs = np.array(zs)
                 wus = np.array(wus)
 
-                np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
+                np.save(''.join(['../data/stability/flipflop/x/DFORCE_xs_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), xs)
-                np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
+                np.save(''.join(['../data/stability/flipflop/z/DFORCE_zs_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), zs)
-                np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
+                np.save(''.join(['../data/stability/flipflop/wu/DFORCE_wus_',
                                 str(seed_num-checkpoint+1), '-', str(seed_num)]), wus)
 
                 if send_email:
@@ -159,11 +160,11 @@ def main(argv):
             zs = np.array(zs)
             wus = np.array(wus)
 
-            np.save(''.join(['../data/stability/sin/x/DFORCE_xs_',
+            np.save(''.join(['../data/stability/flipflop/x/DFORCE_xs_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), xs)
-            np.save(''.join(['../data/stability/sin/z/DFORCE_zs_',
+            np.save(''.join(['../data/stability/flipflop/z/DFORCE_zs_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), zs)
-            np.save(''.join(['../data/stability/sin/wu/DFORCE_wus_',
+            np.save(''.join(['../data/stability/flipflop/wu/DFORCE_wus_',
                                 str(seed_num-len(xs)+1), '-', str(seed_num)]), wus)
 
             if send_email:

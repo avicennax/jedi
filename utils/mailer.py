@@ -24,7 +24,7 @@ def mail(argv, stime, seed_num, seed_total, ucsd_email=True):
     seed_num += 1
     timer = time.time() - stime
 
-    top = ''.join([str(seed_num), '/', str(seed_total), ' seeded computations done.'])
+    top = ''.join([str(seed_num), '/', str(seed_total), ' MC simulations complete.'])
     time_str = ''.join(['Block execution time: ', '{:.3f}'.format(timer)])
     msg = "\n".join([top, time_str])
 
