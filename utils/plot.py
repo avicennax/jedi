@@ -50,7 +50,7 @@ def cross_signal_error(errs1, errs2, t, tstop, title, burn_in=0, mean=True, algo
     plt.title(title, fontweight='bold', fontsize=20)
     plt.legend()
 
-def target_vs_output_plus_error(t, z, wu, target, offset=0, log=True):
+def target_vs_output_plus_error(t, z, wu, target, offset=0, log=True, ylim=None, xlim=None):
     """
     t: ndarray
     z: ndarray
@@ -66,12 +66,18 @@ def target_vs_output_plus_error(t, z, wu, target, offset=0, log=True):
         plt.plot(t[offset:], target, '-r', lw=2)
     plt.plot(t, z, '-b')
     plt.legend(('target', 'output'))
-    plt.ylim([-1.1, 3])
+    if ylim is None:
+        ylim = [-1.1,3]
+    plt.ylim(ylim)
+    if xlim is None:
+        plt.xlim([min(t), max(t)])
     plt.xticks([])
     plt.subplot(2, 1, 2)
     plt.plot(t, wu, '-k')
     if log:
         plt.yscale('log')
+    if xlim is None:
+        plt.xlim([min(t), max(t)])
     plt.ylabel('$|\Delta w|$', fontsize=20)
     plt.xlabel('time', fontweight='bold', fontsize=16)
 
