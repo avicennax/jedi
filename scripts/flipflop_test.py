@@ -2,12 +2,8 @@ from __future__ import division
 import jedi
 from utils import plot, seedutil
 
-import random
-import types
 import matplotlib.pylab as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from scipy.integrate import odeint, ode
 from numpy import zeros,ones,eye,tanh,dot,outer,sqrt,linspace, \
     cos,pi,hstack,zeros_like,abs,repeat
 from numpy.random import uniform,normal,choice
@@ -27,6 +23,7 @@ g = 1.5    # gain factor?
 N = 100      # size of stochastic pool
 lr = 1   # learning rate
 I = 1
+rho = 100
 
 errors = []
 wus = []
@@ -38,7 +35,7 @@ for seed in seeds:
     def model(t0, x, tanh_x, inp, z):
         return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-    x,t,z,_,wu,_ = jedi.force(targets, model, lr, dt, tmax, tstop, x0, w, inputs)
+    x,t,z,_,wu,_ = jedi.sforce(rho, targets, model, lr, dt, tmax, tstop, x0, w, inputs)
 
     zs.append(z)
     wus.append(wu)
@@ -55,7 +52,7 @@ plt.draw()
 
 # Figure 2
 plt.figure(figsize=(12,5))
-plot.signal_error(errors, t, tstop, title= "FORCE (Sin Wave)", burn_in=5)
+plot.signal_error(errors, t, tstop, title= "FORCE (Flip Flop)", burn_in=5)
 plt.draw()
 
 plt.show()

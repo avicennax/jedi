@@ -3,28 +3,23 @@
 
 from __future__ import division
 from jedi import jedi
-from jedi.utils import plot, seedutil, mailer
+from jedi.utils import seedutil, mailer
 
-import random
-import types
 import sys
 import time
 import numpy as np
-from scipy.integrate import odeint, ode
-from numpy import zeros,ones,eye,tanh,dot,outer,sqrt,linspace, \
-    cos,pi,hstack,zeros_like,abs,repeat
-from numpy.random import uniform,normal,choice
+from numpy import tanh, dot, sqrt, cos, pi, abs
 
 def main(argv):
     # Loading seeds
     seeds = seedutil.load_seeds('main_seeds.npy', dir='../data/stability')
 
     # Sin wave target function
-    target = lambda t0: cos(2 * pi * t0 / 10)
+    target = lambda t0: cos(2 * pi * t0 / .5)
 
     # Simulation parameters for FORCE
     parameters = {}
-    parameters['dt'] = dt =.1      # time step
+    parameters['dt'] = dt =.01      # time step
     parameters['tmax'] = tmax = 10   # simulation length
     parameters['tstop'] = tstop = 5 # learning stop time
     parameters['g'] = g = 1.5    # gain factor?
@@ -43,6 +38,7 @@ def main(argv):
     run_dforce = True
     run_force = True
     write_params = True
+    verbose = False
 
     if write_params:
         param_file = open('../data/stability/sin/parameters.txt', 'w')
@@ -71,7 +67,8 @@ def main(argv):
             zs.append(z)
             wus.append(wu)
 
-            print "MC simulation %d complete." % seed_num
+            if verbose:
+                print "MC simulation %d complete." % seed_num
 
             if seed_num % checkpoint == 0 and seed_num != 0:
                 xs = np.array(xs)
@@ -131,7 +128,8 @@ def main(argv):
             zs.append(z)
             wus.append(wu)
 
-            print "MC simulation %d complete." % seed_num
+            if verbose:
+                print "MC simulation %d complete." % seed_num
 
             if seed_num % checkpoint == 0 and seed_num != 0:
                 xs = np.array(xs)
@@ -170,5 +168,5 @@ def main(argv):
                 mailer.mail(argv, timer, seed_num, len(seeds), ucsd_email)
 
 
-if __name__ ==  "__main__":
+if __name__ == "__main__":
     main(sys.argv)
