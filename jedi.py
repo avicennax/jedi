@@ -7,7 +7,7 @@ import types
 import time
 import numpy as np
 from scipy.integrate import ode
-from numpy import eye, tanh, dot, outer, zeros_like, zeros, ceil
+from numpy import eye, tanh, dot, outer, zeros, ceil
 
 def step_decode(x, rho):
     return .5*np.sign(x)+.5
@@ -15,7 +15,7 @@ def step_decode(x, rho):
 def sigmoid(x, rho):
     return 1/(1+np.exp(-rho*x))
 
-def force(target, model, lr, dt, tmax, tstop, x0, w,
+def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
           inputs=None, ode_solver=None, solver_params=None, verbose=True):
     """
     Abbott's FORCE algorithm.
@@ -38,6 +38,9 @@ def force(target, model, lr, dt, tmax, tstop, x0, w,
             Initial model state.
         w: ndarray
             Initial weight vector to be fit.
+        burn_in:
+            Number of seconds of burn_in; allow for initial
+            transient to dissipate.
         inputs: ndarray (Optional)
             Model inputs at each time-step.
         target_func: bool
@@ -91,7 +94,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w,
         else:
             solver = ode_solver
             if 't' not in solver_params:
-                t = [0]
+                t = [-burn_in]
                 solver.t = 0
             else:
                 t = solver_params['t']
@@ -100,7 +103,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w,
 
 
     if inputs is None:
-        inputs = zeros(ceil(tmax/dt)+1).tolist()
+        inputs = zeros(int(ceil(tmax/dt))+1).tolist()
 
     if isinstance(target, types.FunctionType):
         target_func = True
@@ -115,6 +118,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w,
 
     # Integrate ODE, update weights, repeat
     while t[-1] < tmax + prev_tmax:
+
         tanh_x = tanh(x[-1])  # cache
         z.append(dot(w, tanh_x))
 
@@ -154,16 +158,16 @@ def force(target, model, lr, dt, tmax, tstop, x0, w,
     return x, t, z, w, wu, solver
 
 
-def dforce(decoder, rho, target, model, lr, dt, tmax, tstop, x0, w,
+def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
            inputs=None, ode_solver=None, solver_params=None, verbose=True):
     """
     Peterson's DFORCE algorithm.
-    A.K.A Abbott's FORCE with soft thresholding.
+    A.K.A Abbott's FORCE with decoder.
 
     Parameters
     ----------
-        rho: float
-           Temperature parameters for decode.
+        decoder: function
+            Decoder function.
         target: function / ndarray
             Signal for network to learn.
         model: function
@@ -180,8 +184,9 @@ def dforce(decoder, rho, target, model, lr, dt, tmax, tstop, x0, w,
             Initial model state.
         w: ndarray
             Initial weight vector to be fit.
-        k: float
-            Temperature parameter for soft decoding
+        burn_in:
+            Number of seconds of burn_in; allow for initial
+            transient to dissipate.
         inputs: ndarray (Optional)
             Model inputs at each time-step.
         target_func: bool
@@ -236,6 +241,7 @@ def dforce(decoder, rho, target, model, lr, dt, tmax, tstop, x0, w,
             solver = ode_solver
             if 't' not in solver_params:
                 t = [0]
+                solver.t = 0
             else:
                 t = solver_params['t']
             x = [solver_params['x'][-1]]
@@ -264,7 +270,7 @@ def dforce(decoder, rho, target, model, lr, dt, tmax, tstop, x0, w,
         # function call implementation
         # tanh_xd = decoder(tanh_x, rho)
 
-        tanh_xd = decoder(tanh_x,rho)
+        tanh_xd = decoder(tanh_x)
 
         z.append(dot(w, tanh_x))
 
