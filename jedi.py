@@ -9,10 +9,10 @@ import numpy as np
 from scipy.integrate import ode
 from numpy import eye, tanh, dot, outer, zeros, ceil
 
-def step_decode(x, rho):
+def step_decode(rho, x):
     return .5*np.sign(x)+.5
 
-def sigmoid(x, rho):
+def sigmoid(rho, x):
     return 1/(1+np.exp(-rho*x))
 
 def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
@@ -94,7 +94,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
         else:
             solver = ode_solver
             if 't' not in solver_params:
-                t = [-burn_in]
+                t = [0]
                 solver.t = 0
             else:
                 t = solver_params['t']

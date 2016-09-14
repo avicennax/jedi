@@ -1,6 +1,6 @@
 from __future__ import division
-import jedi
-from utils import plot, seedutil
+import jedi.jedi as jedi
+from jedi.utils import plot, init_tools
 
 import random
 import types
@@ -20,25 +20,27 @@ target = lambda t0: cos(2 * pi * t0/.5)
 
 #Simulation parameters for FORCE
 dt = .01      # time step
-tmax = 10   # simulation length
+tmax = 10  # simulation length
 tstop = 5  # learning stop time
-g = 1.5    # gain factor?
-N = 500      # size of stochastic pool
-lr = 1   # learning rate
+rho = 1.25   # spectral radius of J
+N = 300      # size of stochastic pool
+lr = 1.0   # learning rate
+pE = .8 # percent excitatory
+sparsity = (.1,1,1) # sparsity
 errors = []
 
 for seedling in seeds:
-    J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
-    
+    J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
+
     # inp & z are dummy variables
-    def model(t0, x, tanh_x, inp, z): 
-        return (-x + g * dot(J, tanh_x) + Wz*z)/dt
-    
-    x,t,z,_,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w)
+    def model(t0, x, tanh_x, inp, z):
+        return (-x + dot(J, tanh_x) + Wz*z)/dt
+
+    x,t,z,w_learn,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w, 0)
 
     error = np.abs(z-target(t))
     errors.append(error)
-    
+
 errors = np.array(errors)
 
 # Figure 1

@@ -38,7 +38,7 @@ def generate_ei(N, pE):
     return ei, EXC, INH
 
 
-def set_simulation_parameters(seed, N, i, pE=0.8, p=None, rho=None):
+def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
     """
     Common simulation parameters for FORCE/DFORCE
 
@@ -77,9 +77,10 @@ def set_simulation_parameters(seed, N, i, pE=0.8, p=None, rho=None):
     u = prng.uniform(-1, 1, N) #
     w = prng.uniform(-1 / sqrt(p[1]*N), 1 / sqrt(p[1]*N), N)  # Initial weights
 
-    ei, _, _ = generate_ei(N, pE)
-    J = abs(J)
-    J *= ei
+    if pE != None:
+        ei, _, _ = generate_ei(N, pE)
+        J = abs(J)
+        J *= ei
     if rho is not None:
         J *= rho/np.max(np.abs(eigvals(J)))
 
