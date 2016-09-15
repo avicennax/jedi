@@ -9,7 +9,7 @@ import numpy as np
 from scipy.integrate import ode
 from numpy import eye, tanh, dot, outer, zeros, ceil
 
-def step_decode(rho, x):
+def step_decode(x):
     return .5*np.sign(x)+.5
 
 def sigmoid(rho, x):
@@ -272,7 +272,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
 
         tanh_xd = decoder(tanh_x)
 
-        z.append(dot(w, tanh_x))
+        z.append(dot(w, tanh_xd))
 
         if target_func:
             error = target(t[-1]) - z[-1]
@@ -303,7 +303,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
         print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
-    z.append(dot(w, tanh_xd))
+    z.append(dot(w, tanh_x))
 
     x = np.array(x)
     t = np.array(t)
