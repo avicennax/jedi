@@ -220,6 +220,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
             ODE solver used in DFORCE
     """
 
+
     # Running estimate of the inverse correlation matrix
     P = eye(len(x0))
 
@@ -246,6 +247,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
                 t = solver_params['t']
             x = [solver_params['x'][-1]]
             wu, z = [], [0]
+
 
     if inputs is None:
         inputs = zeros(int(ceil(tmax/dt))+1).tolist()
