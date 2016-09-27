@@ -62,7 +62,7 @@ def main(argv):
         param_file.close()
 
     # Seed subselection
-    seeds = seeds[:]
+    seeds = seeds[:100]
 
     if run_force:
         # Checkpoint timer
