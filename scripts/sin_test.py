@@ -53,4 +53,18 @@ plt.figure(figsize=(12,5))
 plot.signal_error(errors, t, tstop, title= "FORCE (Sin Wave)", burn_in=5)
 plt.draw()
 
+#
+# Visualizing activities of first 20 neurons
+T = 300
+plt.figure(figsize=(12,4))
+plt.subplot(211)
+plt.title("Neuron Dynamics");
+for i in range(10):
+    plt.plot(t[:T], x[:T, i]);
+
+plt.subplot(212)
+for i in range(10):
+    plt.plot(t[-T:], x[-T:, i]);
+    plt.xlim(t[-T], t[-1]);
+
 plt.show()

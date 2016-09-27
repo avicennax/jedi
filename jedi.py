@@ -159,7 +159,7 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
 
 
 def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
-           inputs=None, ode_solver=None, solver_params=None, verbose=True):
+           inputs=None, ode_solver=None, solver_params=None, verbose=True, pE=None):
     """
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with decoder.
@@ -221,7 +221,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
     """
 
 
-    # Running estimate of the inverse correlation matrix
+   # Running estimate of the inverse correlation matrix
     P = eye(len(x0))
 
     # Set up ode solver
@@ -257,7 +257,6 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
     else:
         target_func = False
 
-
     prev_tmax = t[-1]
     index = 0
 
@@ -265,15 +264,15 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
     start_time = time.clock()
 
     # Integrate ODE, update weights, repeat
-
     while t[-1] < tmax + prev_tmax:
-        tanh_x = tanh(x[-1])
 
-        # function call implementation
-        # tanh_xd = decoder(tanh_x, rho)
-
-        tanh_xd = decoder(tanh_x)
-
+        tanh_x = tanh(x[-1])  # cache
+        if pE is not None:
+            e_count = int(pE*len(tanh_x))
+            tanh_xd = np.concatenate([decoder(tanh_x[e_count:]), tanh_x[:e_count]
+                                      ])
+        else:
+            tanh_xd = decoder(tanh_x)
         z.append(dot(w, tanh_xd))
 
         if target_func:
@@ -297,15 +296,14 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
         x.append(solver.y)
         t.append(solver.t)
 
-        # Allows for next input to be processed.
+        # Allows for next input/target to be processed.
         index += 1
-
 
     if verbose:
         print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
 
     # last update for readout neuron
-    z.append(dot(w, tanh_x))
+    z.append(dot(w, tanh_xd))
 
     x = np.array(x)
     t = np.array(t)

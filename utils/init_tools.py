@@ -26,16 +26,15 @@ def generate_ei(N, pE):
         raise ValueError("pE must be := 0 < pE < 1.")
 
     Nexc = int(pE*N)
-    Ninh = N - Nexc
 
     idx = range(N)
-    EXC = idx[:Nexc]
-    INH = idx[Nexc:]
+    exc = idx[:Nexc]
+    inh = idx[Nexc:]
 
     ei  = np.ones(N, dtype=int)
-    ei[INH] *= -1
+    ei[inh] *= -1
 
-    return ei, EXC, INH
+    return ei, exc, inh
 
 
 def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
@@ -63,7 +62,7 @@ def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
     if p is None:
         p = np.ones(3)
 
-    J = prng.normal(0, sqrt(1 / (p[0]*N)), (N, N)) # primary stochastic matrix
+    J = prng.normal(0, sqrt(1/ (p[0]*N)), (N, N)) # primary stochastic matrix
     Wz = prng.uniform(-1, 1, N) # feedback vector
     Wi = prng.normal(0, sqrt(1 / (p[2]*i)), (i, i)) # secondary stochastic matrix
 
@@ -78,11 +77,11 @@ def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
     w = prng.uniform(-1 / sqrt(p[1]*N), 1 / sqrt(p[1]*N), N)  # Initial weights
 
     if pE != None:
-        ei, _, _ = generate_ei(N, pE)
+        ei, exc, inh = generate_ei(N, pE)
         J = abs(J)
         J *= ei
     if rho is not None:
         J *= rho/np.max(np.abs(eigvals(J)))
 
 
-    return J, Wz, Wi, x0, u, w,
+    return J, Wz, Wi, x0, u, w

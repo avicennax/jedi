@@ -3,7 +3,7 @@
 
 from __future__ import division
 from jedi import jedi
-from jedi.utils import seedutil, mailer
+from jedi.utils import seedutil, mailer, init_tools
 
 import sys
 import time
@@ -22,10 +22,11 @@ def main(argv):
     parameters['dt'] = dt =.01      # time step
     parameters['tmax'] = tmax = 10   # simulation length
     parameters['tstop'] = tstop = 5 # learning stop time
-    parameters['g'] = g = 1.5    # gain factor?
     parameters['N'] = N = 300      # size of stochastic pool
     parameters['lr'] = lr = 1   # learning rate
-    parameters['rho'] = rho = 100 # SFORCE sharpness factor
+    parameters['rho'] = rho = 1.02 # spectral radius of J
+    parameters['pE'] = pE = .8 # excitatory percent
+    parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
 
     xs = []
     zs = []
@@ -55,13 +56,14 @@ def main(argv):
         timer = time.time()
 
         for seed_num, seedling in enumerate(seeds):
-            J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
+            J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
             # inp & z are dummy variables
+            # inp & z are dummy variables
             def model(t0, x, tanh_x, inp, z):
-                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
+                return (-x + dot(J, tanh_x) + Wz*z)/dt
 
-            x,t,z,_,wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w)
+            x, t, z, _, wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w, 0)
 
             xs.append(x)
             zs.append(z)
@@ -116,13 +118,14 @@ def main(argv):
         timer = time.time()
 
         for seed_num, seedling in enumerate(seeds):
-            J, Wz, _, x0, u, w = seedutil.set_simulation_parameters(seedling, N, 1, (.1,1,1))
+            J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
             # inp & z are dummy variables
+            # inp & z are dummy variables
             def model(t0, x, tanh_x, inp, z):
-                return (-x + g * dot(J, tanh_x) + Wz*z)/dt
+                return (-x + dot(J, tanh_x) + Wz*z)/dt
 
-            x,t,z,_,wu,_ = jedi.sforce(rho, target, model, lr, dt, tmax, tstop, x0, w)
+            x, t, z, _, wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w, 0)
 
             xs.append(x)
             zs.append(z)
