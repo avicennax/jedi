@@ -317,9 +317,10 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in,
         model_params['tanh_x'] = tanh_x
         model_params['inputs'] = inputs[index]
         model_params['z'] = z[-1]
-        model_params['noise'] = noise[index]
+        if noise is not None:
+            model_params['noise'] = noise[index]
 
-        solver.set_f_params(tanh_x, inputs[index], z[-1])
+        solver.set_f_params(model_params)
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)

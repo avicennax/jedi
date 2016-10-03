@@ -66,7 +66,7 @@ def main(argv):
             def model(t0, x, params):
                 z = params['z']
                 tanh_x = params['tanh_x']
-                inp = params['inp']
+                inp = params['inputs']
                 return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
             x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w, 0, inputs=inputs)
@@ -127,7 +127,10 @@ def main(argv):
             J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, I, pE=pE, p=sparsity, rho=rho)
 
             # inp & z are dummy variables
-            def model(t0, x, tanh_x, inp, z):
+            def model(t0, x, params):
+                z = params['z']
+                tanh_x = params['tanh_x']
+                inp = params['inputs']
                 return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
             x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w, 0, inputs=inputs)
