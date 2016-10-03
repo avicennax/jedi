@@ -15,8 +15,8 @@ def step_decode(x):
 def sigmoid(rho, x):
     return 1/(1+np.exp(-rho*x))
 
-def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
-          inputs=None, ode_solver=None, solver_params=None, verbose=True):
+def force(target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in=0,
+          inputs=None, ode_solver=None, solver_params=None, verbose=True, noise=None):
     """
     Abbott's FORCE algorithm.
 
@@ -34,6 +34,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
             Simulation time threshold.
         tstop: float
             Learning time threshold.
+        tstart: float
+            Learning time start.
         x0: ndarray
             Initial model state.
         w: ndarray
@@ -56,6 +58,8 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
                 't': ndarray
         verbose: bool (Optional)
             Specifies whether to run simulation run time.
+        noise: ndarray
+            Model noise
 
     Returns
     -------
@@ -113,38 +117,47 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
     prev_tmax = t[-1]
     index = 0
 
+    # For updating solver model parameters
+    model_params = {}
+
     # Timing simulation
     start_time = time.clock()
 
     # Integrate ODE, update weights, repeat
     while t[-1] < tmax + prev_tmax:
-
         tanh_x = tanh(x[-1])  # cache
         z.append(dot(w, tanh_x))
 
-        if target_func:
-            error = target(t[-1]) - z[-1]
+        if t[-1] > tstop + prev_tmax or t[-1] < tstart + prev_tmax:
+            wc = 0
         else:
-            error = target[index] - z[-1]
+            if target_func:
+                error = target(t[-1]) - z[-1]
+            else:
+                error = target[index] - z[-1]
 
-        q = dot(P, tanh_x)
-        c = lr / (1 + dot(q, tanh_x))
-        P = P - c * outer(q, q)
-        w = w + c * error * q
+            q = dot(P, tanh_x)
+            c = lr / (1 + dot(q, tanh_x))
+            P = P - c * outer(q, q)
+            w = w + c * error * q
+            wc = np.sum(np.abs(c * error * q))
 
-        # Stop leaning here
-        if t[-1] > tstop + prev_tmax:
-            lr = 0
+        wu.append(wc)
 
-        wu.append(np.sum(np.abs(c * error * q)))
+        model_params['tanh_x'] = tanh_x
+        model_params['inputs'] = inputs[index]
+        model_params['z'] = z[-1]
+        if noise is not None:
+            model_params['noise'] = noise[index]
 
-        solver.set_f_params(tanh_x, inputs[index], z[-1])
+        solver.set_f_params(model_params)
         solver.integrate(solver.t + dt)
         x.append(solver.y)
         t.append(solver.t)
 
         # Allows for next input/target to be processed.
         index += 1
+
 
     if verbose:
         print 'Simulation run-time (wall): %.3f seconds' % (time.clock() - start_time)
@@ -158,8 +171,9 @@ def force(target, model, lr, dt, tmax, tstop, x0, w, burn_in=0,
     return x, t, z, w, wu, solver
 
 
-def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
-           inputs=None, ode_solver=None, solver_params=None, verbose=True, pE=None):
+def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in,
+           inputs=None, ode_solver=None, solver_params=None, verbose=True, pE=None,
+           noise=None):
     """
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with decoder.
@@ -179,7 +193,9 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
         tmax: float
             Simulation time threshold.
         tstop: float
-            Learning time threshold.
+            Learning time end.
+        tstart: float
+            Learning time start
         x0: ndarray
             Initial model state.
         w: ndarray
@@ -202,6 +218,10 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
                 't': ndarray
         verbose: bool (Optional)
             Specifies whether to run simulation run time.
+        pE: float
+            Percent of J units that are excititory.
+        noise: ndarray
+            Model noise
 
     Returns
     -------
@@ -260,6 +280,9 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
     prev_tmax = t[-1]
     index = 0
 
+    # For updating solver model parameters
+    model_params = {}
+
     # Timing simulation
     start_time = time.clock()
 
@@ -269,27 +292,32 @@ def dforce(decoder, target, model, lr, dt, tmax, tstop, x0, w, burn_in,
         tanh_x = tanh(x[-1])  # cache
         if pE is not None:
             e_count = int(pE*len(tanh_x))
-            tanh_xd = np.concatenate([decoder(tanh_x[e_count:]), tanh_x[:e_count]
-                                      ])
+            tanh_xd = np.concatenate([decoder(tanh_x[e_count:]), tanh_x[:e_count]])
         else:
             tanh_xd = decoder(tanh_x)
         z.append(dot(w, tanh_xd))
 
-        if target_func:
-            error = target(t[-1]) - z[-1]
-        else:
-            error = target[index] - z[-1]
-
-        q = dot(P, tanh_xd)
-        c = lr / (1 + dot(q, tanh_xd))
-        P = P - c * outer(q, q)
-        w = w + c * error * q
-
         # Stop leaning here
-        if t[-1] > tstop + prev_tmax:
-            lr = 0
+        if t[-1] > tstop + prev_tmax or t[-1] < tstart + prev_tmax:
+            wc = 0
+        else:
+            if target_func:
+                error = target(t[-1]) - z[-1]
+            else:
+                error = target[index] - z[-1]
 
-        wu.append(np.sum(np.abs(c * error * q)))
+            q = dot(P, tanh_xd)
+            c = lr / (1 + dot(q, tanh_xd))
+            P = P - c * outer(q, q)
+            w = w + c * error * q
+            wc = np.sum(np.abs(c * error * q))
+
+        wu.append(wc)
+
+        model_params['tanh_x'] = tanh_x
+        model_params['inputs'] = inputs[index]
+        model_params['z'] = z[-1]
+        model_params['noise'] = noise[index]
 
         solver.set_f_params(tanh_x, inputs[index], z[-1])
         solver.integrate(solver.t + dt)

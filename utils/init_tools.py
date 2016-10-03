@@ -34,7 +34,12 @@ def generate_ei(N, pE):
     ei  = np.ones(N, dtype=int)
     ei[inh] *= -1
 
-    return ei, exc, inh
+    # So the inhibitory neurons aren't overpowered by excititory ones.
+    weights = np.ones(N)
+    weights[exc] *= (1 - pE)
+    weights[inh] *= pE
+
+    return ei, weights
 
 
 def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
@@ -76,10 +81,11 @@ def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
     u = prng.uniform(-1, 1, N) #
     w = prng.uniform(-1 / sqrt(p[1]*N), 1 / sqrt(p[1]*N), N)  # Initial weights
 
-    if pE != None:
-        ei, exc, inh = generate_ei(N, pE)
+    if pE is not None:
+        ei, weights = generate_ei(N, pE)
         J = abs(J)
         J *= ei
+        J *= weights
     if rho is not None:
         J *= rho/np.max(np.abs(eigvals(J)))
 
