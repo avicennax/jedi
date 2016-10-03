@@ -25,7 +25,7 @@ def main(argv):
     parameters['tstart'] = tstart = 0 # learning start
     parameters['N'] = N = 300      # size of stochastic pool
     parameters['lr'] = lr = 1   # learning rate
-    parameters['rho'] = rho = 1.02 # spectral radius of J
+    parameters['rho'] = rho = 1.5 # spectral radius of J
     parameters['pE'] = pE = .8 # excitatory percent
     parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
 
@@ -123,10 +123,12 @@ def main(argv):
 
             # inp & z are dummy variables
             # inp & z are dummy variables
-            def model(t0, x, tanh_x, inp, z):
+            def model(t0, x, params):
+                z = params['z']
+                tanh_x = params['tanh_x']
                 return (-x + dot(J, tanh_x) + Wz*z)/dt
 
-            x, t, z, _, wu,_ = jedi.force(target, model, lr, dt, tmax, tstart, tstop, x0, w, 0)
+            x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, target, model, lr, dt, tmax, tstart, tstop, x0, w, 0)
 
             xs.append(x)
             zs.append(z)

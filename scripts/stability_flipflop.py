@@ -133,7 +133,8 @@ def main(argv):
                 inp = params['inputs']
                 return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-            x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w, 0, inputs=inputs)
+            x, t, z, _, wu, _ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart,
+                                            tstop, x0, w, 0, inputs=inputs)
 
             xs.append(x)
             zs.append(z)
