@@ -24,6 +24,7 @@ def main(argv):
     parameters['dt'] = dt =.01      # time step
     parameters['tmax'] = tmax = 10   # simulation length
     parameters['tstop'] = tstop = 5 # learning stop time
+    parameters['tstart'] = tstart = 0 # learning start
     parameters['N'] = N = 300      # size of stochastic pool
     parameters['lr'] = lr = 1   # learning rate
     parameters['rho'] = rho = 1.02 # spectral radius of J
@@ -68,7 +69,7 @@ def main(argv):
                 inp = params['inp']
                 return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-            x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstop, x0, w, 0, inputs=inputs)
+            x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w, 0, inputs=inputs)
 
             xs.append(x)
             zs.append(z)
@@ -129,7 +130,7 @@ def main(argv):
             def model(t0, x, tanh_x, inp, z):
                 return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
-            x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstop, x0, w, 0, inputs=inputs)
+            x, t, z, _, wu, _ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w, 0, inputs=inputs)
 
             xs.append(x)
             zs.append(z)

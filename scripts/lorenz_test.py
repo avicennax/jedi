@@ -45,7 +45,7 @@ for seedling in seeds:
         tanh_x = params['tanh_x']
         return (-x + g * dot(J, tanh_x) + Wz*z)/dt
     
-    x,t,z,_,wu,_ = jedi.force(targets, model, lr, dt, tmax, tstop, x0, w)
+    x,t,z,_,wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w)
 
     error = np.abs(z-targets)
     errors.append(error)
