@@ -32,7 +32,10 @@ zs = []
 for seed in seeds:
     J, Wz, Wi, x0, u, w = seedutil.set_simulation_parameters(seed, N, I, p=(.1,1,1))
 
-    def model(t0, x, tanh_x, inp, z):
+    def model(t0, x, params):
+        z = params['z']
+        tanh_x = params['tanh_x']
+        inp = params['inp']
         return (-x + dot(J, tanh_x) + dot(Wi, inp) + Wz*z)/dt
 
     x,t,z,_,wu,_ = jedi.sforce(rho, targets, model, lr, dt, tmax, tstop, x0, w, inputs)

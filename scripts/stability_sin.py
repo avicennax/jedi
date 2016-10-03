@@ -58,9 +58,9 @@ def main(argv):
         for seed_num, seedling in enumerate(seeds):
             J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
-            # inp & z are dummy variables
-            # inp & z are dummy variables
-            def model(t0, x, tanh_x, inp, z):
+            def model(t0, x, params):
+                z = params['z']
+                tanh_x = params['tanh_x']
                 return (-x + dot(J, tanh_x) + Wz*z)/dt
 
             x, t, z, _, wu,_ = jedi.force(target, model, lr, dt, tmax, tstop, x0, w, 0)
