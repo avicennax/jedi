@@ -15,7 +15,7 @@ def step_decode(x):
 def sigmoid(rho, x):
     return 1/(1+np.exp(-rho*x))
 
-def force(target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in=0,
+def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
           inputs=None, ode_solver=None, solver_params=None, verbose=True, noise=None):
     """
     Abbott's FORCE algorithm.
@@ -40,9 +40,6 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in=0,
             Initial model state.
         w: ndarray
             Initial weight vector to be fit.
-        burn_in:
-            Number of seconds of burn_in; allow for initial
-            transient to dissipate.
         inputs: ndarray (Optional)
             Model inputs at each time-step.
         target_func: bool
@@ -171,7 +168,7 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in=0,
     return x, t, z, w, wu, solver
 
 
-def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in,
+def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
            inputs=None, ode_solver=None, solver_params=None, verbose=True, pE=None,
            noise=None):
     """
@@ -200,9 +197,6 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w, burn_in,
             Initial model state.
         w: ndarray
             Initial weight vector to be fit.
-        burn_in:
-            Number of seconds of burn_in; allow for initial
-            transient to dissipate.
         inputs: ndarray (Optional)
             Model inputs at each time-step.
         target_func: bool

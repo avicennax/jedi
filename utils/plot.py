@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import types
 
 
-def signal_error(errs, t, tstop, title, burn_in=0, mean=True):
+def signal_error(errs, t, tstart, tstop, title, burn_in=0, mean=True):
     """
     errs: list[ndarray] (mean=True) / ndarray (mean=False)
     t: ndarray
@@ -21,17 +21,19 @@ def signal_error(errs, t, tstop, title, burn_in=0, mean=True):
     ymax = 2*np.max(errs[burn_in:])
     plt.plot(t[burn_in:], errs[burn_in:], label="Signal/Output Error")
     plt.vlines(tstop,0, ymax, label="Training Stop")
+    plt.vlines(tstart,0, ymax, label="Training Start")
     plt.ylim(0,ymax)
     plt.xlabel('time', fontweight='bold', fontsize=16)
     plt.ylabel('error', fontweight='bold', fontsize=16)
     plt.title(title, fontweight='bold', fontsize=20)
     plt.legend()
 
-def cross_signal_error(errs1, errs2, t, tstop, title, burn_in=0, mean=True, algo1="Force", algo2="SFORCE"):
+def cross_signal_error(errs1, errs2, t, tstart, tstop, title, burn_in=0, mean=True, algo1="Force", algo2="SFORCE"):
     """
     errs1: list[ndarray] (mean=True) / ndarray (mean=False)
     errs2: list[ndarray] (mean=True) / ndarray (mean=False)
     t: ndarray
+    tstart: float
     tstop: float
     title: string
     burn_in: float (optional)
@@ -44,6 +46,7 @@ def cross_signal_error(errs1, errs2, t, tstop, title, burn_in=0, mean=True, algo
     plt.plot(t[burn_in:], errs1[burn_in:], label="S/O Error (%s)" % algo1, alpha=.8)
     plt.plot(t[burn_in:], errs2[burn_in:], label="S/O Error (%s)" % algo2, alpha=.8)
     plt.vlines(tstop,0, ymax, label="Training Stop")
+    plt.vlines(tstart,0, ymax, label="Training Start")
     plt.ylim(0,ymax)
     plt.xlabel('time', fontweight='bold', fontsize=16)
     plt.ylabel('error', fontweight='bold', fontsize=16)
