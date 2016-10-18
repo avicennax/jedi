@@ -1,5 +1,6 @@
 #Jupyter
 notebooks/.ipynb_checkpoints/
+*.DS_store
 
 # Python
 *.pyc
@@ -11,3 +12,6 @@ notebooks/.ipynb_checkpoints/
 
 # Other
 *.pdf
+
+# Data
+data/
