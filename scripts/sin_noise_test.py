@@ -17,7 +17,7 @@ dt = .01      # time step
 tmax = 10  # simulation length
 tstart = 0
 tstop = 5  # learning stop time
-rho = 1.02   # spectral radius of J
+rho = 1.25   # spectral radius of J
 N = 300      # size of stochastic pool
 lr = 1.0   # learning rate
 pE = .8 # percent excitatory
@@ -59,7 +59,7 @@ cPickle.dump(noiseless_errors, open("../data/randompickles/noiseless_errors.p", 
 
 noise_errors={}
 
-for noise_var in [.1,.2,.3,.4,.5]:
+for noise_var in [.05, .1, .15, .2, .25, .3]:
 
     #Noise matrix
     noise_mat = np.array([np.random.normal(0,noise_var,N) for i in range(t_count)])

@@ -6,7 +6,7 @@ import matplotlib.pylab as plt
 import numpy as np
 
 # Setting Seeds
-seeds = np.random.uniform(0,10000,15).astype(int)
+seeds = np.random.uniform(0,10000,1).astype(int)
 
 # sine-wave target
 target = lambda t0: np.cos(2 * np.pi * t0/.5)
@@ -35,9 +35,10 @@ for seedling in seeds:
 
     # inp & z are dummy variables
     def model(t0, x, params):
+        index = params['index']
         tanh_x = params['tanh_x']
         z = params['z']
-        noise = params['noise']
+        noise = params['noise'][index]
         return (-x + np.dot(J, tanh_x) + Wz*z + noise)/dt
 
     x, t, z, _, wu,_ = jedi.force(target, model, lr, dt, tmax, tstart, tstop, x0, w, noise=noise_mat)
@@ -74,9 +75,10 @@ for seedling in seeds:
     J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
     def model(t0, x, params):
+        index = params['index']
         tanh_x = params['tanh_x']
         z = params['z']
-        noise = params['noise']
+        noise = params['noise'][index]
         return (-x + np.dot(J, tanh_x) + Wz*z + noise)/dt
 
     x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, target, model, lr, dt, tmax, tstart, tstop, x0, w,

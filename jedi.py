@@ -16,7 +16,7 @@ def sigmoid(rho, x):
     return 1/(1+np.exp(-rho*x))
 
 def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
-          inputs=None, ode_solver=None, solver_params=None, verbose=True, noise=None):
+          inputs=None, verbose=True, noise=None):
     """
     Abbott's FORCE algorithm.
 
@@ -44,15 +44,6 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
             Model inputs at each time-step.
         target_func: bool
             Specifies whether the target is a function or ndarray.
-        ode_solver: scipy.integrate.ode (Optional)
-            Pre-initialized ODE solver.
-            NOTE: if solver_params not passed, then ode_solver will
-            be ignored and a new solver will be initialized.
-        solver_params: dict (Optional)
-            Contains state and time variables from a previous system.
-            Should contain:
-                'x': ndarray
-                't': ndarray
         verbose: bool (Optional)
             Specifies whether to run simulation run time.
         noise: ndarray
@@ -79,29 +70,11 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
     P = eye(len(x0))
 
     # Set up ode solver
-    if ode_solver is None:
-        solver = ode(model)
-        solver.set_initial_value(x0)
+    solver = ode(model)
+    solver.set_initial_value(x0)
 
-        # Simulation data: state, output, time, weight updates
-        x, z, t, wu = [x0], [], [0], [0]
-    else:
-        if solver_params is None:
-            solver = ode(model)
-            solver.set_initial_value(x0)
-
-            # Simulation data: state, output, time, weight updates
-            x, z, t, wu = [x0], [], [0], [0]
-        else:
-            solver = ode_solver
-            if 't' not in solver_params:
-                t = [0]
-                solver.t = 0
-            else:
-                t = solver_params['t']
-            x = [solver_params['x'][-1]]
-            wu, z = [], [0]
-
+    # Simulation data: state, output, time, weight updates
+    x, z, t, wu = [x0], [], [0], [0]
 
     if inputs is None:
         inputs = zeros(int(ceil(tmax/dt))+1).tolist()
@@ -111,7 +84,6 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
     else:
         target_func = False
 
-    prev_tmax = t[-1]
     index = 0
 
     # For updating solver model parameters
@@ -121,11 +93,11 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
     start_time = time.clock()
 
     # Integrate ODE, update weights, repeat
-    while t[-1] < tmax + prev_tmax:
+    while t[-1] < tmax:
         tanh_x = tanh(x[-1])  # cache
         z.append(dot(w, tanh_x))
 
-        if t[-1] > tstop + prev_tmax or t[-1] < tstart + prev_tmax:
+        if t[-1] > tstop or t[-1] < tstart:
             wc = 0
         else:
             if target_func:
@@ -141,11 +113,12 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
 
         wu.append(wc)
 
+        model_params['index'] = index
         model_params['tanh_x'] = tanh_x
-        model_params['inputs'] = inputs[index]
+        model_params['inputs'] = inputs
         model_params['z'] = z[-1]
         if noise is not None:
-            model_params['noise'] = noise[index]
+            model_params['noise'] = noise
 
         solver.set_f_params(model_params)
         solver.integrate(solver.t + dt)
@@ -169,8 +142,7 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
 
 
 def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
-           inputs=None, ode_solver=None, solver_params=None, verbose=True, pE=None,
-           noise=None):
+           inputs=None, verbose=True, pE=None, noise=None):
     """
     Peterson's DFORCE algorithm.
     A.K.A Abbott's FORCE with decoder.
@@ -239,39 +211,17 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
     P = eye(len(x0))
 
     # Set up ode solver
-    if ode_solver is None:
-        solver = ode(model)
-        solver.set_initial_value(x0)
+    solver = ode(model)
+    solver.set_initial_value(x0)
 
-        # Simulation data: state, output, time, weight updates
-        x, z, t, wu = [x0], [], [0], [0]
-    else:
-        if solver_params is None:
-            solver = ode(model)
-            solver.set_initial_value(x0)
-
-            # Simulation data: state, output, time, weight updates
-            x, z, t, wu = [x0], [], [0], [0]
-        else:
-            solver = ode_solver
-            if 't' not in solver_params:
-                t = [0]
-                solver.t = 0
-            else:
-                t = solver_params['t']
-            x = [solver_params['x'][-1]]
-            wu, z = [], [0]
-
-
-    if inputs is None:
-        inputs = zeros(int(ceil(tmax/dt))+1).tolist()
+    # Simulation data: state, output, time, weight updates
+    x, z, t, wu = [x0], [], [0], [0]
 
     if isinstance(target, types.FunctionType):
         target_func = True
     else:
         target_func = False
 
-    prev_tmax = t[-1]
     index = 0
 
     # For updating solver model parameters
@@ -281,7 +231,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
     start_time = time.clock()
 
     # Integrate ODE, update weights, repeat
-    while t[-1] < tmax + prev_tmax:
+    while t[-1] < tmax:
 
         tanh_x = tanh(x[-1])  # cache
         if pE is not None:
@@ -292,7 +242,7 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
         z.append(dot(w, tanh_xd))
 
         # Stop leaning here
-        if t[-1] > tstop + prev_tmax or t[-1] < tstart + prev_tmax:
+        if t[-1] > tstop or t[-1] < tstart:
             wc = 0
         else:
             if target_func:
@@ -308,11 +258,12 @@ def dforce(decoder, target, model, lr, dt, tmax, tstart, tstop, x0, w,
 
         wu.append(wc)
 
+        model_params['index'] = index
         model_params['tanh_x'] = tanh_x
-        model_params['inputs'] = inputs[index]
+        model_params['inputs'] = inputs
         model_params['z'] = z[-1]
         if noise is not None:
-            model_params['noise'] = noise[index]
+            model_params['noise'] = noise
 
         solver.set_f_params(model_params)
         solver.integrate(solver.t + dt)
