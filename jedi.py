@@ -76,9 +76,6 @@ def force(target, model, lr, dt, tmax, tstart, tstop, x0, w,
     # Simulation data: state, output, time, weight updates
     x, z, t, wu = [x0], [], [0], [0]
 
-    if inputs is None:
-        inputs = zeros(int(ceil(tmax/dt))+1).tolist()
-
     if isinstance(target, types.FunctionType):
         target_func = True
     else:
