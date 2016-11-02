@@ -13,18 +13,18 @@ seeds = seedutil.load_seeds("main_seeds.npy", "../../../data/stability")
 target = lambda t0: np.cos(2 * np.pi * t0/.5)
 
 #Simulation parameters for FORCE
-dt = .01      # time step
-tmax = 10  # simulation length
-tstart = 0
-tstop = 5  # learning stop time
-rho = 1.25   # spectral radius of J
-N = 300      # size of stochastic pool
-lr = 1.0   # learning rate
-pE = .8 # percent excitatory
-sparsity = (.1,1,1) # sparsity
-t_count = int(tmax/dt+2) # number of time steps
-
-noise_int_var = .3
+parameters = {}
+parameters['dt'] = dt =.01      # time step
+parameters['tmax'] = tmax = 10   # simulation length
+parameters['tstop'] = tstop = 5 # learning stop time
+parameters['tstart'] = tstart = 0 # learning start
+parameters['N'] = N = 300      # size of stochastic pool
+parameters['lr'] = lr = 1   # learning rate
+parameters['rho'] = rho = 1.25 # spectral radius of J
+parameters['pE'] = pE = .8 # excitatory percent
+parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
+parameters['t_count'] = t_count = int(tmax/dt+2) # number of time steps
+parameters['noise_int_var'] = noise_int_var = .3
 
 #Noise matrix
 int_noise_mat = np.array([np.random.normal(0, noise_int_var, N) for _ in range(t_count)])
@@ -58,6 +58,7 @@ for seedling in seeds:
     derrors_noise.append(derror)
 
 noise_errors = {}
+noise_errors['parameters'] = parameters
 noise_errors['force'] = (errors_noise, zs_noise)
 noise_errors['dforce'] = (derrors_noise, dzs_noise)
 
