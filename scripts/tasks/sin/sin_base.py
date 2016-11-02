@@ -24,9 +24,6 @@ parameters['rho'] = rho = 1.25 # spectral radius of J
 parameters['pE'] = pE = .8 # excitatory percent
 parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
 
-noiseless_errors = {}
-noiseless_errors['parameters'] = parameters
-
 errors = []
 derrors = []
 zs = []
@@ -54,6 +51,8 @@ for seedling in seeds:
     derror = z-target(t)
     derrors.append(derror)
 
+noiseless_errors = {}
+noiseless_errors['parameters'] = parameters
 noiseless_errors['force'] = (errors, zs)
 noiseless_errors['dforce'] = (derrors, dzs)
 cPickle.dump(noiseless_errors, open("../../../data/stability/sin/base/base.p", "wb"))
