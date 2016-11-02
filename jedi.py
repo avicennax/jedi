@@ -7,7 +7,7 @@ import types
 import time
 import numpy as np
 from scipy.integrate import ode
-from numpy import eye, tanh, dot, outer, zeros, ceil
+from numpy import eye, tanh, dot, outer
 
 def step_decode(x):
     return .5*np.sign(x)+.5

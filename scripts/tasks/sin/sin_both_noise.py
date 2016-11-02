@@ -26,12 +26,9 @@ parameters['t_count'] = t_count = int(tmax/dt+2) # number of time steps
 parameters['noise_int_var'] = noise_int_var = .3
 parameters['noise_ext_var'] = noise_ext_var = .1
 
-noise_ext_var = .1
-noise_int_var = .3
-
 #Noise matrix
 int_noise_mat = np.array([np.random.normal(0, noise_int_var, N) for _ in range(t_count)])
-ext_noise_mat = np.array([np.random.normal(0, noise_ext_var, N) for _ in range(t_count)])
+ext_noise_mat = np.random.normal(0, noise_ext_var, t_count)
 
 targets = target(np.linspace(0, 10, t_count)) + ext_noise_mat
 
@@ -40,7 +37,7 @@ derrors_noise = []
 zs_noise = []
 dzs_noise = []
 
-for seedling in seeds:
+for seedling in seeds[:10]:
     J, Wz, _, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
     # inp & z are dummy variables

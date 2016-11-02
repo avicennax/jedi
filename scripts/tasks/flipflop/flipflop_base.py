@@ -13,23 +13,24 @@ targets = np.load("../../../data/stability/flipflop/targets_tmax10sec.npy")
 inputs = np.load("../../../data/stability/flipflop/inputs_tmax10sec.npy")
 
 #Simulation parameters for FORCE
-dt = .01      # time step
-tmax = 10  # simulation length
-tstart = 0
-tstop = 5  # learning stop time
-rho = 1.02   # spectral radius of J
-N = 300      # size of stochastic pool
-lr = 1.0   # learning rate
-pE = .8 # percent excitatory
-sparsity = (.1,1,1) # sparsity
-I = 1 # input-dim
-t_count = int(tmax/dt+2) # number of time steps
+parameters = {}
+parameters['dt'] = dt =.01      # time step
+parameters['tmax'] = tmax = 10   # simulation length
+parameters['tstop'] = tstop = 5 # learning stop time
+parameters['tstart'] = tstart = 0 # learning start
+parameters['N'] = N = 300      # size of stochastic pool
+parameters['lr'] = lr = 1   # learning rate
+parameters['rho'] = rho = 1.02 # spectral radius of J
+parameters['pE'] = pE = .8 # excitatory percent
+parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
+parameters['t_count'] = t_count = int(tmax/dt+2)
 
 noiseless_errors = {}
 errors = []
 derrors = []
 zs = []
 dzs = []
+I = 1
 
 for seedling in seeds:
     J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, I, pE=pE, p=sparsity, rho=rho)
@@ -55,6 +56,8 @@ for seedling in seeds:
     derror = z-np.array(targets)
     derrors.append(derror)
 
+noiseless_errors = {}
+noiseless_errors['parameters'] = parameters
 noiseless_errors['force'] = (errors, zs)
 noiseless_errors['dforce'] = (derrors, dzs)
 cPickle.dump(noiseless_errors, open("../../../data/stability/flipflop/base/base.p", "wb"))

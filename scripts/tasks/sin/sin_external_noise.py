@@ -27,7 +27,7 @@ parameters['t_count'] = t_count = int(tmax/dt+2) # number of time steps
 parameters['noise_ext_var'] = noise_ext_var = .1
 
 #Noise matrix
-ext_noise_mat = np.array([np.random.normal(0, noise_ext_var, N) for _ in range(t_count)])
+ext_noise_mat = np.random.normal(0, noise_ext_var, t_count)
 
 targets = target(np.linspace(0, 10, t_count)) + ext_noise_mat
 
