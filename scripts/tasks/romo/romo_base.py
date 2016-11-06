@@ -25,8 +25,6 @@ def main(seed):
     parameters['rho'] = rho = 1.02 # spectral radius of J
     parameters['pE'] = pE = .8 # excitatory percent
     parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
-    parameters['noise_int_var'] = noise_int_var = .1
-    parameters['noise_ext_var'] = noise_ext_var = .05
     parameters['trial_num'] = trial_num = 10
     parameters['start_validate'] = start_validate = 7
 
@@ -39,17 +37,16 @@ def main(seed):
         'name':             "gradient"
         }
 
-    I = 1
-    noise_errors = {}
-    noise_errors['parameters'] = parameters
-    noise_errors['seeds'] = seeds
+    noiseless_errors = {}
+    noiseless_errors['parameters'] = parameters
 
     rng = np.random.RandomState(seeds[0])
-    parameters['trials'] = trials = [romo.generate_trial(rng, 5, params) for _
+    parameters['trials'] = trials = [romo.generate_trial(rng, 10, params) for _
           in range(10)]
 
     for seedling in seeds:
-        J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, I, pE=pE, p=sparsity, rho=rho)
+
+        J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
         def model(t0, x, params):
             index = params['index']
@@ -58,10 +55,10 @@ def main(seed):
             inp = params['inputs'][index]
             return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
-        errors_noise = []
-        derrors_noise = []
-        zs_noise = []
-        dzs_noise = []
+        errors = []
+        derrors = []
+        zs = []
+        dzs = []
         w_ = None
 
         for trial_num, trial in enumerate(trials):
@@ -69,13 +66,6 @@ def main(seed):
             targets = trial['outputs'][:,1]
             inputs = trial['inputs'][:,1]
             tmax = float(len(targets))/100-.01
-
-            #Noise matrix
-            int_noise_mat = np.array([np.random.normal(0, noise_int_var, N) for i in range(len(targets))])
-            ext_noise_mat = np.random.normal(0, noise_ext_var, len(targets))
-
-            # Adding external noise
-            inputs +=  ext_noise_mat
 
             if trial_num >= start_validate:
                 tstop = .5*tmax
@@ -87,29 +77,25 @@ def main(seed):
                 x0 = x[-1]
 
             x, t, z, _, wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                          inputs=inputs, noise=int_noise_mat)
+                                          inputs=inputs)
             z = z[1:]
-            zs_noise.append(z)
+            zs.append(z)
             error = z-np.array(targets)
-            errors_noise.append(error)
+            errors.append(error)
 
             x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                     pE=pE, inputs=inputs, noise=int_noise_mat)
-
+                                         pE=pE, inputs=inputs)
             z = z[1:]
-            dzs_noise.append(z)
+            dzs.append(z)
             derror = z-np.array(targets)
-            derrors_noise.append(derror)
+            derrors.append(derror)
 
-        noise_errors[seedling] = {}
-        noise_errors[seedling]['force'] = (errors_noise, zs_noise)
-        noise_errors[seedling]['dforce'] = (derrors_noise, dzs_noise)
+        noiseless_errors[seedling] = {}
+        noiseless_errors[seedling]['force'] = (errors, zs)
+        noiseless_errors[seedling]['dforce'] = (derrors, dzs)
 
-    noise_key = "({0}_{1})".format(noise_ext_var, noise_int_var)
+    cPickle.dump(noiseless_errors, open("../../../data/stability/romo/base/base.p", "wb"))
 
-    cPickle.dump(noise_errors,
-                 open("../../../data/stability/romo/both_noise/noise_exin_" +
-                      noise_key + ".p", "wb"))
 
 if __name__ == "__main__":
 
@@ -122,3 +108,4 @@ if __name__ == "__main__":
         seed = None
 
     main(seed)
+

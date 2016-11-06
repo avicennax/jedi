@@ -6,92 +6,114 @@ import pycog
 
 import numpy as np
 import cPickle
+import sys
+import time
 
-# Setting Seeds
-seeds = seedutil.load_seeds("main_seeds.npy", "../../../data/stability")
-seeds = seeds[:100]
+def main(seed):
 
-#Simulation parameters for FORCE
-parameters = {}
-parameters['dt'] = dt = .01      # time step
-parameters['tstart'] = tstart = 0 # learning start
-parameters['N'] = N = 700      # size of stochastic pool
-parameters['lr'] = lr = 1   # learning rate
-parameters['rho'] = rho = 1.02 # spectral radius of J
-parameters['pE'] = pE = .8 # excitatory percent
-parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
-parameters['noise_int_var'] = noise_var = .3
-parameters['trial_num'] = trial_num = 10
-parameters['start_validate'] = start_validate = 7
+    # Setting Seeds
+    seeds = seedutil.load_seeds("main_seeds.npy", "../../../data/stability")
+    if seed is not None:
+        seeds = seeds[:seed]
 
-# Romo task parameters
-params = {
-    'callback_results': None,
-    'target_output':    True,
-    'minibatch_index':  1,
-    'best_costs':       None,
-    'name':             "gradient"
-    }
+    #Simulation parameters for FORCE
+    parameters = {}
+    parameters['dt'] = dt = .01      # time step
+    parameters['tstart'] = tstart = 0 # learning start
+    parameters['N'] = N = 300      # size of stochastic pool
+    parameters['lr'] = lr = 1   # learning rate
+    parameters['rho'] = rho = 1.02 # spectral radius of J
+    parameters['pE'] = pE = .8 # excitatory percent
+    parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
+    parameters['noise_int_var'] = noise_var = .3
+    parameters['trial_num'] = trial_num = 10
+    parameters['start_validate'] = start_validate = 7
 
-I = 1
-noise_errors = {}
-noise_errors['parameters'] = parameters
-noise_errors['seeds'] = seeds
+    # Romo task parameters
+    params = {
+        'callback_results': None,
+        'target_output':    True,
+        'minibatch_index':  1,
+        'best_costs':       None,
+        'name':             "gradient"
+        }
 
-for seedling in seeds:
-    J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, I, pE=pE, p=sparsity, rho=rho)
-    rng = np.random.RandomState(seedling)
-    trials = [romo.generate_trial(rng, 5, params) for _
-          in range(trial_num)]
+    noise_errors = {}
+    noise_errors['parameters'] = parameters
+    noise_errors['seeds'] = seeds
 
-    def model(t0, x, params):
-        index = params['index']
-        z = params['z']
-        tanh_x = params['tanh_x']
-        inp = params['inputs'][index]
-        return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
+    rng = np.random.RandomState(seeds[0])
+    parameters['trials'] = trials = [romo.generate_trial(rng, 5, params) for _
+          in range(10)]
 
-    errors_noise = []
-    derrors_noise = []
-    zs_noise = []
-    dzs_noise = []
-    w_ = None
 
-    for trial_num, trial in enumerate(trials):
+    for seedling in seeds:
+        J, Wz, Wi, x0, u, w = init_tools.set_simulation_parameters(seedling, N, 1, pE=pE, p=sparsity, rho=rho)
 
-        targets = trial['outputs'][:,1]
-        inputs = trial['inputs'][:,1]
-        tmax = float(len(targets))/100-.01
+        def model(t0, x, params):
+            index = params['index']
+            z = params['z']
+            tanh_x = params['tanh_x']
+            inp = params['inputs'][index]
+            return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
-        #Noise matrix
-        int_noise_mat = np.array([np.random.normal(0, noise_var, N) for i in range(len(targets))])
+        errors_noise = []
+        derrors_noise = []
+        zs_noise = []
+        dzs_noise = []
+        w_ = None
 
-        if trial_num >= start_validate:
-            tstop = .5*tmax
-        else:
-            tstop = tmax
+        for trial_num, trial in enumerate(trials):
 
-        if w_ is not None:
-            w = w_
-            x0 = x[-1]
+            targets = trial['outputs'][:,1]
+            inputs = trial['inputs'][:,1]
+            tmax = float(len(targets))/100-.01
 
-        x, t, z, _, wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                      inputs=inputs, noise=int_noise_mat)
+            #Noise matrix
+            int_noise_mat = np.array([np.random.normal(0, noise_var, N) for i in range(len(targets))])
 
-        zs_noise.append(z)
-        error = z-np.array(targets)
-        errors_noise.append(error)
+            if trial_num >= start_validate:
+                tstop = .5*tmax
+            else:
+                tstop = tmax
 
-        x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                 pE=pE, inputs=inputs, noise=int_noise_mat)
+            if w_ is not None:
+                w = w_
+                x0 = x[-1]
 
-        dzs_noise.append(z)
-        derror = z-np.array(targets)
-        derrors_noise.append(derror)
+            x, t, z, _, wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w,
+                                          inputs=inputs, noise=int_noise_mat)
 
-    noise_errors[seedling] = {}
-    noise_errors[seedling]['force'] = (errors_noise, zs_noise)
-    noise_errors[seedling]['dforce'] = (derrors_noise, dzs_noise)
+            z = z[1:]
+            zs_noise.append(z)
+            error = z-np.array(targets)
+            errors_noise.append(error)
 
-cPickle.dump(noise_errors,
-             open("../../../data/stability/romo/internal_noise/noise_var_" + str(noise_var) + ".p", "wb"))
+            x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart, tstop, x0, w,
+                                     pE=pE, inputs=inputs, noise=int_noise_mat)
+
+            z = z[1:]
+            dzs_noise.append(z)
+            derror = z-np.array(targets)
+            derrors_noise.append(derror)
+
+        noise_errors[seedling] = {}
+        noise_errors[seedling]['force'] = (errors_noise, zs_noise)
+        noise_errors[seedling]['dforce'] = (derrors_noise, dzs_noise)
+
+    cPickle.dump(noise_errors,
+                 open("../../../data/stability/romo/internal_noise/noise_var_" +
+                      str(noise_var) + ".p", "wb"))
+
+if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        try:
+            seed = int(sys.argv[1])
+        except:
+            raise ValueError("Check your args; make sure the ONLY arg is an int")
+    else:
+        seed = None
+
+    main(seed)
+

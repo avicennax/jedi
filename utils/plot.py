@@ -28,7 +28,8 @@ def signal_error(errs, t, tstart, tstop, title, burn_in=0, mean=True):
     plt.title(title, fontweight='bold', fontsize=20)
     plt.legend()
 
-def cross_signal_error(errs1, errs2, t, tstart, tstop, title, burn_in=0, mean=True, algo1="Force", algo2="SFORCE"):
+def cross_signal_error(errs1, errs2, t, tstart, tstop, title, burn_in=0, mean=True,
+                       algo1="Force", algo2="DFORCE", alpha=None):
     """
     errs1: list[ndarray] (mean=True) / ndarray (mean=False)
     errs2: list[ndarray] (mean=True) / ndarray (mean=False)
@@ -39,12 +40,15 @@ def cross_signal_error(errs1, errs2, t, tstart, tstop, title, burn_in=0, mean=Tr
     burn_in: float (optional)
     mean: bool (optional)
     """
+    if alpha is None:
+        alpha = .7
+
     if mean:
         errs1 = np.mean(errs1, axis=0)
         errs2 = np.mean(errs2, axis=0)
     ymax = 2*np.max([np.max(errs1[burn_in:]), np.max(errs2[burn_in:])])
-    plt.plot(t[burn_in:], errs1[burn_in:], label="S/O Error (%s)" % algo1, alpha=.8)
-    plt.plot(t[burn_in:], errs2[burn_in:], label="S/O Error (%s)" % algo2, alpha=.8)
+    plt.plot(t[burn_in:], errs1[burn_in:], label="S/O Error (%s)" % algo1, alpha=alpha)
+    plt.plot(t[burn_in:], errs2[burn_in:], label="S/O Error (%s)" % algo2, alpha=alpha)
     plt.vlines(tstop,0, ymax, label="Training Stop")
     plt.vlines(tstart,0, ymax, label="Training Start")
     plt.ylim(0,ymax)
