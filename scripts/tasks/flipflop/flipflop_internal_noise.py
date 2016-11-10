@@ -1,6 +1,6 @@
 from __future__ import division
 import jedi.jedi as jedi
-from jedi.utils import plot, init_tools, seedutil
+from jedi.utils import plot, init_tools, seedutil, noise_gen
 
 import numpy as np
 import cPickle
@@ -27,10 +27,14 @@ def main(seed):
     parameters['pE'] = pE = .8 # excitatory percent
     parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
     parameters['t_count'] = t_count = int(tmax/dt+2)
-    parameters['noise_var'] = noise_var = .3
+    parameters['noise_var'] = noise_var = .35
+    parameters['noise'] = noise = 'pink'
 
     #Noise matrix
-    noise_mat = np.array([np.random.normal(0,noise_var,N) for _ in range(t_count)])
+    if noise == 'normal':
+        noise_mat = np.array([np.random.normal(0, noise_var, N) for _ in range(t_count)])
+    elif noise =='pink':
+        noise_mat = np.array([noise_gen.voss(N, noise_var) for _ in range(t_count)])
 
     errors_noise = []
     derrors_noise = []

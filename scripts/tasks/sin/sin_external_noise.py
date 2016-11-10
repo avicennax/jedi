@@ -1,6 +1,6 @@
 from __future__ import division
 import jedi.jedi as jedi
-from jedi.utils import plot, init_tools, seedutil
+from jedi.utils import plot, init_tools, seedutil, noise_gen
 import cPickle
 
 import matplotlib.pylab as plt
@@ -28,10 +28,15 @@ def main(seed):
     parameters['pE'] = pE = .8 # excitatory percent
     parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
     parameters['t_count'] = t_count = int(tmax/dt+2) # number of time steps
-    parameters['noise_ext_var'] = noise_ext_var = .3
+    parameters['noise_ext_var'] = noise_ext_var = .5
+    parameters['noise'] = noise = 'normal'
 
     #Noise matrix
-    ext_noise_mat = np.random.normal(0, noise_ext_var, t_count)
+    if noise == 'normal':
+        ext_noise_mat = np.random.normal(0, noise_ext_var, t_count)
+    elif noise =='pink':
+        ext_noise_mat = np.array([noise_gen.voss(N) for _ in range(t_count)])
+
 
     targets = target(np.linspace(0, 10, t_count)) + ext_noise_mat
 

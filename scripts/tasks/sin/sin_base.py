@@ -6,7 +6,7 @@ import cPickle
 import numpy as np
 import sys
 
-def main(seed):
+def main(seed, sig):
     # Setting Seeds
     seeds = seedutil.load_seeds("main_seeds.npy", "../../../data/stability")
     if seed is not None:

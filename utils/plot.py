@@ -108,7 +108,7 @@ def visualize_3dim_state(time, tv, pca_x):
     pca_x: ndarray
     """
     ti = np.argmax(tv >= time)
-    ax = plt.figure(figsize=(10,10)).add_subplot(111, projection='3d')
+    ax = plt.figure(figsize=(10,10)).add_subplot(111, projection='3d');
     ax.scatter(pca_x[0][ti], pca_x[1][ti], pca_x[2][ti], c='red');
     plt.plot(pca_x[0][:ti], pca_x[1][:ti], pca_x[2][:ti]);
     ax.set_xlabel('PCA 1')

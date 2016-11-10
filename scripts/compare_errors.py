@@ -4,6 +4,7 @@ from jedi import jedi
 from jedi.utils import plot, seedutil, func_generator, init_tools
 import cPickle
 import argparse
+import scipy.stats as stats
 import sys
 
 parser = argparse.ArgumentParser(description='Display errors plots for tasks')
@@ -13,14 +14,34 @@ parser.add_argument('noise', nargs="?")
 
 def run(path, title):
     ds = cPickle.load(open(path, "rb"))
-    errors = ds['force'][0]
-    derrors = ds['dforce'][0]
+    errors = np.array(ds['force'][0])**2
+    derrors = np.array(ds['dforce'][0])**2
     params = ds['parameters']
 
     tstart, tstop, t = params['tstart'], params['tstop'], params['t']
 
+    # Post-training period error
+
+    ti = np.argmax(t > tstop)
+
+    post_train_e = errors[:, ti:650]
+    post_train_de = derrors[:, ti:650]
+
     del params['t']
     print params
+    print ("FORCE --")
+    print ("Error mean: %.4f" % np.mean(post_train_e ))
+    print ("Error std: %.4f\n" % np.std(post_train_e ))
+
+
+    print ("DFORCE --")
+    print ("Error mean: %.4f" % np.mean(post_train_de))
+    print ("Error std: %.4f\n" % np.std(post_train_de))
+
+    print("t-test: %.2E" %
+          stats.ttest_ind(np.concatenate(post_train_e),
+                          np.concatenate(post_train_de), equal_var=False)[1])
+
 
     plt.figure(figsize=(12,3))
     plot.cross_signal_error(errors, derrors, t, tstart, tstop,
