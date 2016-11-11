@@ -137,7 +137,12 @@ def visualize_2dim_state(time, tv, pca_x):
     """
     ti = np.argmax(tv >= time)
     plt.figure(figsize=(6,6))
-    plt.plot(pca_x[0][:ti], pca_x[1][:ti])
-    plt.plot(pca_x[0][ti], pca_x[1][ti], 'ro')
+
     plt.ylabel("PCA 2")
     plt.xlabel("PCA 1")
+    plt.ylim(-15,15)
+    ax = plt.subplot(111)
+    ax.plot(pca_x[0][:ti], pca_x[1][:ti], 'k')
+    ax.plot(pca_x[0][ti], pca_x[1][ti], 'ro')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
