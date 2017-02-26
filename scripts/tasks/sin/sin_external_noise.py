@@ -28,7 +28,7 @@ def main(seed):
     parameters['pE'] = pE = .8 # excitatory percent
     parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
     parameters['t_count'] = t_count = int(tmax/dt+2) # number of time steps
-    parameters['noise_ext_var'] = noise_ext_var = .5
+    parameters['noise_ext_var'] = noise_ext_var = .3
     parameters['noise'] = noise = 'normal'
 
     #Noise matrix

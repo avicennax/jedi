@@ -129,7 +129,7 @@ def visualize_2dim_state(time, tv, pca_x):
     > tv = t[:500]
     > interact(visualize_2dim_state, time=(tmin, tmax, .1), pca_x=fixed(pca_x), tv=fixed(tv));
 
-    Parametersw
+    Parameters
     ----------
     time: ndarray
     tv: float
@@ -138,8 +138,8 @@ def visualize_2dim_state(time, tv, pca_x):
     ti = np.argmax(tv >= time)
     plt.figure(figsize=(6,6))
 
-    plt.ylabel("PCA 2")
-    plt.xlabel("PCA 1")
+    plt.ylabel("PCA 2", fontsize=16)
+    plt.xlabel("PCA 1", fontsize=16)
     plt.ylim(-15,15)
     ax = plt.subplot(111)
     ax.plot(pca_x[0][:ti], pca_x[1][:ti], 'k')

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from jedi import jedi
 from jedi.utils import plot, seedutil, func_generator, init_tools
+from jedi.utils import stats as cohen
 import cPickle
 import argparse
 import scipy.stats as stats
@@ -41,6 +42,8 @@ def run(path, title):
     print("t-test: %.2E" %
           stats.ttest_ind(np.concatenate(post_train_e),
                           np.concatenate(post_train_de), equal_var=False)[1])
+    print("Cohen's d: %.2f" % cohen.cohen_d(np.concatenate(post_train_e),
+                                           np.concatenate(post_train_de)) )
 
 
     plt.figure(figsize=(12,3))
