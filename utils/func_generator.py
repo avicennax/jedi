@@ -24,6 +24,9 @@ def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01, pulse_len=None):
         inp[pos_spikes] = 1
         inp[neg_spikes] = -1
 
+        inp = inp.tolist()
+        out = out.tolist()
+
         last = 1
         pulse = 0
         pulse_counter = 0
@@ -67,6 +70,7 @@ def flip_flop_generator(n=1, spikes=[[3,3]], t=1000, dt=.01, pulse_len=None):
                     else:
                         inp[i] = -1
                         out[i] = -1
+
 
         inp += [inp[-1], inp[-1]]
         out += [out[-1], out[-1]]
