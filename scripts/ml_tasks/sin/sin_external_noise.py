@@ -59,8 +59,7 @@ def main(seed):
         error = z-targets
         errors_noise.append(error)
 
-        x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                     pE=pE)
+        x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, targets, model, lr, dt, tmax, tstart, tstop, x0, w)
         dzs_noise.append(z)
         derror = z-targets
         derrors_noise.append(derror)

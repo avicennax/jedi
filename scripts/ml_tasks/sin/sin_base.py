@@ -24,7 +24,7 @@ def main(seed, sig):
     parameters['N'] = N = 300      # size of stochastic pool
     parameters['lr'] = lr = 1   # learning rate
     parameters['rho'] = rho = 1.25 # spectral radius of J
-    parameters['sparsity'] = sparsity = (.1,1,1) # weight sparsity
+    parameters['sparsity'] = sparsity = (.1, 1, 1) # weight sparsity
 
     errors = []
     derrors = []
@@ -46,8 +46,7 @@ def main(seed, sig):
         error = z-target(t)
         errors.append(error)
 
-        x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, target, model, lr, dt, tmax, tstart, tstop, x0, w,
-                                     pE=pE)
+        x, t, z, _, wu,_ = jedi.dforce(jedi.step_decode, target, model, lr, dt, tmax, tstart, tstop, x0, w)
 
         dzs.append(z)
         derror = z-target(t)
