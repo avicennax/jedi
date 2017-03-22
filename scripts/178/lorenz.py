@@ -60,12 +60,12 @@ def main(seed):
     if plots:
         # Figure 1
         plt.figure(figsize=(12, 5))
-        plot.target_vs_output_plus_error(t, z, wu, targets, offset=0, log=False)
+        plot.target_vs_output_plus_error(t, z, wu, targets, offset=1, log=False)
         plt.draw()
 
         # Figure 2
         plt.figure(figsize=(12, 5))
-        plot.signal_error(errors, t, tstop, title="FORCE (Lorenz)", burn_in=5)
+        plot.signal_error(errors, t[1:], tstop, title="FORCE (Lorenz)", burn_in=5)
         plt.draw()
 
         plt.show()
