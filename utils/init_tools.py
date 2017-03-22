@@ -69,12 +69,12 @@ def set_simulation_parameters(seed, N, i, pE=None, p=None, rho=None):
 
     J = prng.normal(0, sqrt(1/ (p[0]*N)), (N, N)) # primary stochastic matrix
     Wz = prng.uniform(-1, 1, N) # feedback vector
-    Wi = prng.normal(0, sqrt(1 / (p[2]*i)), (i, i)) # secondary stochastic matrix
+    Wi = prng.normal(0, sqrt(1 / (p[2]*i)), (N, i)) # secondary stochastic matrix
 
     # sparsifying
     J *= stats.bernoulli.rvs(p[0], 0, N*N).reshape(N,N)
     Wz *= stats.bernoulli.rvs(p[1], 0, N)
-    Wi *= stats.bernoulli.rvs(p[2], 0, i*i).reshape(i,i)
+    Wi *= stats.bernoulli.rvs(p[2], 0, N*i).reshape(N,i)
 
     x0 = prng.uniform(-0.5, 0.5, N) # initial state (x0)
 

@@ -59,7 +59,7 @@ plt.draw()
 
 # Figure 2
 plt.figure(figsize=(12,5))
-plot.signal_error(errors, t, tstop, title= "FORCE (Sin Wave)", burn_in=5)
+plot.signal_error(errors, t, tstop, title= "FORCE (Lorenz)", burn_in=5)
 plt.draw()
 
 plt.show()

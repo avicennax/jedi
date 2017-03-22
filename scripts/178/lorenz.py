@@ -2,6 +2,7 @@ from __future__ import division
 import jedi.jedi as jedi
 from jedi.utils import plot, init_tools, seedutil, analysis
 from scipy.integrate import odeint
+import matplotlib.pyplot as plt
 
 import numpy as np
 import cPickle
@@ -9,17 +10,19 @@ import sys
 
 def main(seed):
     # Setting Seeds
-    seeds = seedutil.load_seeds("main_seeds.npy", "../../../data/stability")
-    if seed is not None:
-        seeds = seeds[:seed]
+    seeds = [42]
+
+    # Flags
+    compute_minima = False
+    plots = True
 
     # Parameters specified by Abbott 2009.
     def lorentz((x, y, z), t0, sigma=10., beta=8./3, rho=28.0):
         return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z]
 
     # Defining Lorenz targets
-    break_in = 5000
-    T = 15001  # period
+    break_in = 500
+    T = 1501  # period
     x0 = np.random.randn(3)  # starting vector
     t_ = np.linspace(0, 60, T)
     lorenz = odeint(lorentz, x0, t_) / 10
@@ -54,8 +57,22 @@ def main(seed):
         error = np.abs(z[1:]-np.array(targets))
         errors.append(error)
 
-    F = lambda x: -x + np.dot(J, np.tanh(x)) + Wz * np.dot(w, np.tanh(x)) / dt
-    minima = analysis.fixed_points(F, x, 2)
+    if plots:
+        # Figure 1
+        plt.figure(figsize=(12, 5))
+        plot.target_vs_output_plus_error(t, z, wu, targets, offset=0, log=False)
+        plt.draw()
+
+        # Figure 2
+        plt.figure(figsize=(12, 5))
+        plot.signal_error(errors, t, tstop, title="FORCE (Lorenz)", burn_in=5)
+        plt.draw()
+
+        plt.show()
+
+    if compute_minima:
+        F = lambda x: (-x + np.dot(J, np.tanh(x)) + Wz * np.dot(w, np.tanh(x))) / dt
+        minima = analysis.fixed_points(F, x, 2)
 
     try:
         parameters['t'] = t
@@ -65,7 +82,10 @@ def main(seed):
     res = {}
     res['parameters'] = parameters
     res['force'] = (errors, zs)
-    res['minima'] = minima
+
+    if compute_minima:
+        res['minima'] = minima
+
     cPickle.dump(res, open("../../../data/178/lorenz.p", "wb"))
 
 

@@ -37,7 +37,7 @@ for seedling in seeds:
         index = params['index']
         z = params['z']
         tanh_x = params['tanh_x']
-        inp = params['inputs'][index]
+        inp = np.array([params['inputs'][index]])
         return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
     x, t, z, w, wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w0, inputs=inputs)
@@ -55,8 +55,8 @@ errors = np.array(errors)
 
 # Fixed points
 
-F = lambda x: -x + np.dot(J, np.tanh(x)) + Wz*np.dot(w, np.tanh(x))/dt
-minima = analysis.fixed_points(F, x, 10)
+F = lambda inp, x: (-x + np.dot(J, np.tanh(x)) + Wz*np.dot(w,np.tanh(x)) - np.dot(Wi, np.array([inp])))/dt
+minima = analysis.fixed_points(F, x, 20, inputs=inputs)
 
 
 ## -- DFORCE -- ##
@@ -74,7 +74,7 @@ for seedling in seeds:
         index = params['index']
         z = params['z']
         tanh_x = params['tanh_x']
-        inp = params['inputs'][index]
+        inp = np.array([params['inputs'][index]])
         return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
     x, t, z, w, wu, _ = jedi.dforce(act_f, targets, model, lr, dt, tmax, tstart, tstop, x0, w0, inputs=inputs)
@@ -86,5 +86,5 @@ for seedling in seeds:
 
 derrors = np.array(derrors)
 
-F = lambda x: -x + np.dot(J, np.tanh(x)) + Wz*np.dot(w, np.tanh(x))/dt
-minima = analysis.fixed_points(F, x, 10)
+F = lambda inp, x: (-x + np.dot(J, np.tanh(x)) + Wz*np.dot(w,np.tanh(x)) - np.dot(Wi, np.array([inp])))/dt
+minima = analysis.fixed_points(F, x, 5, inputs=inputs)
