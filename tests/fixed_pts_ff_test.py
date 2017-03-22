@@ -30,15 +30,15 @@ zs = []
 wus = []
 
 for seedling in seeds:
-    J, Wz, _, x0, u, w0 = init_tools.set_simulation_parameters(seedling, N, 1, p=sparsity, rho=rho)
+    J, Wz, Wi, x0, u, w0 = init_tools.set_simulation_parameters(seedling, N, 1, p=sparsity, rho=rho)
 
     # inp & z are dummy variables
     def model(t0, x, params):
+        index = params['index']
         z = params['z']
         tanh_x = params['tanh_x']
-        inp = params['inputs']
-        noise = params['noise']
-        return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z + noise)/dt
+        inp = params['inputs'][index]
+        return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
     x, t, z, w, wu,_ = jedi.force(targets, model, lr, dt, tmax, tstart, tstop, x0, w0, inputs=inputs)
 
@@ -56,7 +56,7 @@ errors = np.array(errors)
 # Fixed points
 
 F = lambda x: -x + np.dot(J, np.tanh(x)) + Wz*np.dot(w, np.tanh(x))/dt
-minima = analysis.fixed_points(F, x, 20)
+minima = analysis.fixed_points(F, x, 10)
 
 
 ## -- DFORCE -- ##
@@ -71,11 +71,11 @@ for seedling in seeds:
     J, Wz, Wi, x0, u, w0 = init_tools.set_simulation_parameters(seedling, N, 1, p=sparsity, rho=rho)
 
     def model(t0, x, params):
+        index = params['index']
         z = params['z']
         tanh_x = params['tanh_x']
-        inp = params['inputs']
-        noise = params['noise']
-        return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z + noise)/dt
+        inp = params['inputs'][index]
+        return (-x + np.dot(J, tanh_x) + np.dot(Wi, inp) + Wz*z)/dt
 
     x, t, z, w, wu, _ = jedi.dforce(act_f, targets, model, lr, dt, tmax, tstart, tstop, x0, w0, inputs=inputs)
 

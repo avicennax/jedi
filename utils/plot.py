@@ -28,6 +28,7 @@ def signal_error(errs, t, tstart, tstop, title, burn_in=0, mean=True):
     plt.title(title, fontweight='bold', fontsize=20)
     plt.legend()
 
+
 def cross_signal_error(errs1, errs2, t, tstart, tstop, title, burn_in=0, mean=True,
                        algo1="Force", algo2="DFORCE", alpha=None):
     """
@@ -87,6 +88,7 @@ def target_vs_output_plus_error(t, z, wu, target, offset=0, log=True, ylim=None,
         plt.xlim([min(t), max(t)])
     plt.ylabel('$|\Delta w|$', fontsize=20)
     plt.xlabel('time', fontweight='bold', fontsize=16)
+
 
 def visualize_3dim_state(time, tv, pca_x):
     """
